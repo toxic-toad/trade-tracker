@@ -3,42 +3,12 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import {
-  calculateAccountStats,
-  createDefaultData,
-  formatCurrency,
-  formatPercent,
-  readTrackerData,
-  type Trade,
-  type TrackerData,
-  writeTrackerData,
-} from "../lib/tracker-data";
+import { useMemo } from "react";
+import { formatCurrency, formatPercent } from "../lib/tracker-data";
+import { removeTrade, useTrackerStore } from "../lib/tracker-store";
 
 export default function HistoryPage() {
-  const [data, setData] = useState<TrackerData>(createDefaultData);
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    const refreshData = () => {
-      setData(readTrackerData());
-      setHydrated(true);
-    };
-
-    refreshData();
-    window.addEventListener("storage", refreshData);
-    window.addEventListener("trade-tracker-data-changed", refreshData);
-
-    return () => {
-      window.removeEventListener("storage", refreshData);
-      window.removeEventListener("trade-tracker-data-changed", refreshData);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    writeTrackerData(data);
-  }, [data, hydrated]);
+  const data = useTrackerStore();
 
   const sortedTrades = useMemo(() => {
     return [...data.trades].sort((left, right) => {
@@ -62,16 +32,7 @@ export default function HistoryPage() {
     const confirmed = window.confirm("Delete this trade? This cannot be undone.");
     if (!confirmed) return;
 
-    const nextTrades = data.trades.filter((trade) => trade.id !== tradeId);
-    const nextData = {
-      ...data,
-      trades: nextTrades,
-      stats: calculateAccountStats(data.settings, nextTrades),
-    };
-
-    setData(nextData);
-    writeTrackerData(nextData);
-    window.dispatchEvent(new Event("trade-tracker-data-changed"));
+    removeTrade(tradeId);
   };
 
   return (

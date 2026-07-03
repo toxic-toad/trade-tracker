@@ -25,6 +25,54 @@
         "x-next-revalidate-tag-token"
       ]
     },
+    "/financial": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "Next-Action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/financial",
+      "dataRoute": "/financial.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
+    "/goals": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "Next-Action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/goals",
+      "dataRoute": "/goals.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
     "/history": {
       "experimentalBypassFor": [
         {
@@ -77,8 +125,8 @@
   "dynamicRoutes": {},
   "notFoundRoutes": [],
   "preview": {
-    "previewModeId": "75d289e1bb3232663fcd54a715ad1830",
-    "previewModeSigningKey": "4612cdeaa14da782e7a6b1a161f318fef3758d5c793944ea963485c81196e3eb",
-    "previewModeEncryptionKey": "674eca8e07b8a4a38dff9a4faecf421be5832a6cc84a7ebe48d7548fb643e0e0"
+    "previewModeId": "96bb6fab59c94987d0abc77fa911af7f",
+    "previewModeSigningKey": "514e7113e1c11f4590823d67650a041c5eb770f7d8f50e91099f4a53d4e8cdd7",
+    "previewModeEncryptionKey": "a524eafc93e63e4e4bde8388adaab923b67be252350bbff4d7ec044fdc36c555"
   }
 }

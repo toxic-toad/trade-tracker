@@ -4,7 +4,8 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { calculateAccountStats, readTrackerData, type Trade, writeTrackerData } from "../lib/tracker-data";
+import type { Trade } from "../lib/tracker-data";
+import { addTrade } from "../lib/tracker-store";
 
 const todayString = () => new Date().toISOString().slice(0, 10);
 
@@ -46,17 +47,7 @@ export default function AddTradePage() {
       createdAt: new Date().toISOString(),
     };
 
-    const currentData = readTrackerData();
-    const nextTrades = [trade, ...currentData.trades];
-    const nextData = {
-      ...currentData,
-      trades: nextTrades,
-      stats: calculateAccountStats(currentData.settings, nextTrades),
-    };
-
-    writeTrackerData(nextData);
-    window.dispatchEvent(new Event("trade-tracker-data-changed"));
-
+    addTrade(trade);
     setStatus("Trade saved locally.");
     setDraft(emptyDraft());
   };

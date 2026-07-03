@@ -34,6 +34,18 @@
       "namedRegex": "^/add(?:/)?$"
     },
     {
+      "page": "/financial",
+      "regex": "^/financial(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/financial(?:/)?$"
+    },
+    {
+      "page": "/goals",
+      "regex": "^/goals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/goals(?:/)?$"
+    },
+    {
       "page": "/history",
       "regex": "^/history(?:/)?$",
       "routeKeys": {},

@@ -3,105 +3,70 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import {
-  calculateAccountStats,
-  createDefaultData,
-  formatCurrency,
-  formatPercent,
-  readTrackerData,
-  type Settings,
-  type TabId,
-  type Trade,
-  type TrackerData,
-  writeTrackerData,
-} from "./lib/tracker-data";
+import { useMemo, useState } from "react";
+import { formatCurrency, formatPercent, type TabId } from "./lib/tracker-data";
+import type { Settings } from "./lib/tracker-models";
+import { updateTrackerSettings, useTrackerStore } from "./lib/tracker-store";
 
 const tabs: Array<{ id: TabId; label: string; icon: string; href?: string }> = [
   { id: "dashboard", label: "Dashboard", icon: "🏠", href: "/" },
   { id: "add", label: "Add Trade", icon: "➕", href: "/add" },
   { id: "history", label: "History", icon: "📈" },
-  { id: "payout", label: "Payout", icon: "🎯" },
-  { id: "debt", label: "Debt", icon: "💳" },
+  { id: "payout", label: "Goals", icon: "🎯", href: "/goals" },
+  { id: "debt", label: "Financial Progress", icon: "💳", href: "/financial" },
   { id: "settings", label: "Settings", icon: "⚙️" },
 ];
 
 export default function Home() {
-  const [data, setData] = useState<TrackerData>(createDefaultData);
+  const data = useTrackerStore();
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
-  const [hasLoaded, setHasLoaded] = useState(false);
-
-  useEffect(() => {
-    const refreshData = () => {
-      setData(readTrackerData());
-      setHasLoaded(true);
-    };
-
-    refreshData();
-    window.addEventListener("storage", refreshData);
-    window.addEventListener("trade-tracker-data-changed", refreshData);
-
-    return () => {
-      window.removeEventListener("storage", refreshData);
-      window.removeEventListener("trade-tracker-data-changed", refreshData);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!hasLoaded) return;
-    writeTrackerData(data);
-  }, [data, hasLoaded]);
 
   const stats = useMemo(() => data.stats, [data.stats]);
 
   const updateSettings = (changes: Partial<Settings>) => {
-    setData((current) => {
-      const nextSettings = { ...current.settings, ...changes };
-      return {
-        ...current,
-        settings: nextSettings,
-        stats: calculateAccountStats(nextSettings, current.trades),
-      };
-    });
+    updateTrackerSettings(changes);
   };
 
-  const dashboardCards = [
-    {
-      title: "Current Balance",
-      value: formatCurrency(stats.currentBalance, data.settings.usdToInr),
-      subtitle: "Starting balance + realized profit",
-    },
-    {
-      title: "Current Profit",
-      value: formatCurrency(stats.currentProfit, data.settings.usdToInr),
-      subtitle: "Based on your profit split",
-    },
-    {
-      title: "Profit Remaining Until Payout",
-      value: formatCurrency(stats.profitRemainingUntilPayout, data.settings.usdToInr),
-      subtitle: `${data.settings.minimumProfitForPayout} minimum target`,
-    },
-    {
-      title: "Trading Days Completed",
-      value: `${stats.tradingDaysCompleted} / ${data.settings.minimumTradingDays}`,
-      subtitle: "Days with recorded trades",
-    },
-    {
-      title: "Next Payout Countdown",
-      value: `${stats.nextPayoutCountdownDays}d`,
-      subtitle: `${data.settings.payoutCycleDays}-day cycle`,
-    },
-    {
-      title: "Current Debt",
-      value: formatCurrency(stats.currentDebt, 1),
-      subtitle: "Stored in INR",
-    },
-    {
-      title: "Debt Progress",
-      value: formatPercent(stats.debtProgressPercent),
-      subtitle: "Salary contribution vs debt",
-    },
-  ];
+  const dashboardCards = useMemo(
+    () => [
+      {
+        title: "Current Balance",
+        value: formatCurrency(stats.currentBalance, data.settings.usdToInr),
+        subtitle: "Starting balance + realized profit",
+      },
+      {
+        title: "Current Profit",
+        value: formatCurrency(stats.currentProfit, data.settings.usdToInr),
+        subtitle: "Based on your profit split",
+      },
+      {
+        title: "Profit Remaining Until Payout",
+        value: formatCurrency(stats.profitRemainingUntilPayout, data.settings.usdToInr),
+        subtitle: `${data.settings.minimumProfitForPayout} minimum target`,
+      },
+      {
+        title: "Trading Days Completed",
+        value: `${stats.tradingDaysCompleted} / ${data.settings.minimumTradingDays}`,
+        subtitle: "Days with recorded trades",
+      },
+      {
+        title: "Next Payout Countdown",
+        value: `${stats.nextPayoutCountdownDays}d`,
+        subtitle: `${data.settings.payoutCycleDays}-day cycle`,
+      },
+      {
+        title: "Current Debt",
+        value: formatCurrency(stats.currentDebt, 1),
+        subtitle: "Stored in INR",
+      },
+      {
+        title: "Debt Progress",
+        value: formatPercent(stats.debtProgressPercent),
+        subtitle: "Salary contribution vs debt",
+      },
+    ],
+    [data.settings.minimumProfitForPayout, data.settings.minimumTradingDays, data.settings.payoutCycleDays, data.settings.usdToInr, stats],
+  );
 
   const panelCopy: Record<TabId, { title: string; description: string; accent: string }> = {
     dashboard: {
@@ -120,14 +85,14 @@ export default function Home() {
       accent: "Local history",
     },
     payout: {
-      title: "Payout target",
-      description: "Track how close you are to your preferred payout milestone.",
-      accent: "Payout focus",
+      title: "Goals",
+      description: "Track payout progress, consistency, and debt motivation from your own data.",
+      accent: "Goal focus",
     },
     debt: {
-      title: "Debt overview",
-      description: "Monitor debt pressure and contribution pacing from your own device.",
-      accent: "Debt control",
+      title: "Financial progress",
+      description: "Monitor debt payoff, income flow, and your forecast from your own data.",
+      accent: "Financial focus",
     },
     settings: {
       title: "Personal settings",
@@ -221,47 +186,23 @@ export default function Home() {
 
         {activeTab === "payout" && (
           <section className="mt-4 rounded-[28px] border border-white/10 bg-slate-900/70 p-4 shadow-[0_20px_80px_rgba(2,6,23,0.4)] backdrop-blur-xl sm:p-5">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-                <p className="text-sm text-slate-400">Minimum payout target</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{formatCurrency(data.settings.minimumProfitForPayout, data.settings.usdToInr)}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-                <p className="text-sm text-slate-400">Remaining to payout</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{formatCurrency(stats.profitRemainingUntilPayout, data.settings.usdToInr)}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-                <p className="text-sm text-slate-400">Profit split</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{formatPercent(data.settings.profitSplit)}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-                <p className="text-sm text-slate-400">Cycle</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{data.settings.payoutCycleDays}-day</p>
-              </div>
+            <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm text-emerald-300">
+              Open the dedicated Goals page for payout progress, consistency, and motivation.
             </div>
+            <Link href="/goals" className="mt-4 inline-flex rounded-2xl bg-emerald-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-400">
+              Go to Goals
+            </Link>
           </section>
         )}
 
         {activeTab === "debt" && (
           <section className="mt-4 rounded-[28px] border border-white/10 bg-slate-900/70 p-4 shadow-[0_20px_80px_rgba(2,6,23,0.4)] backdrop-blur-xl sm:p-5">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-                <p className="text-sm text-slate-400">Current debt</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{formatCurrency(stats.currentDebt, 1)}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-                <p className="text-sm text-slate-400">Monthly salary</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{formatCurrency(data.settings.monthlySalary, 1)}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-                <p className="text-sm text-slate-400">Contribution</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{formatCurrency(data.settings.monthlySalaryContribution, 1)}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-                <p className="text-sm text-slate-400">Debt progress</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{formatPercent(stats.debtProgressPercent)}</p>
-              </div>
+            <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm text-emerald-300">
+              Open the dedicated Financial Progress page for debt payoff and income forecasts.
             </div>
+            <Link href="/financial" className="mt-4 inline-flex rounded-2xl bg-emerald-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-400">
+              Go to Financial Progress
+            </Link>
           </section>
         )}
 
