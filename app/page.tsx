@@ -1,5 +1,8 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   calculateAccountStats,
@@ -14,33 +17,34 @@ import {
   writeTrackerData,
 } from "./lib/tracker-data";
 
-const tabs: Array<{ id: TabId; label: string; icon: string }> = [
-  { id: "dashboard", label: "Dashboard", icon: "🏠" },
-  { id: "add", label: "Add Trade", icon: "➕" },
+const tabs: Array<{ id: TabId; label: string; icon: string; href?: string }> = [
+  { id: "dashboard", label: "Dashboard", icon: "🏠", href: "/" },
+  { id: "add", label: "Add Trade", icon: "➕", href: "/add" },
   { id: "history", label: "History", icon: "📈" },
   { id: "payout", label: "Payout", icon: "🎯" },
   { id: "debt", label: "Debt", icon: "💳" },
   { id: "settings", label: "Settings", icon: "⚙️" },
 ];
 
-const createTradeDraft = () => ({
-  symbol: "",
-  side: "Buy" as Trade["side"],
-  entry: "",
-  exit: "",
-  notes: "",
-});
-
 export default function Home() {
   const [data, setData] = useState<TrackerData>(createDefaultData);
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
-  const [tradeDraft, setTradeDraft] = useState(createTradeDraft);
   const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
-    const stored = readTrackerData();
-    setData(stored);
-    setHasLoaded(true);
+    const refreshData = () => {
+      setData(readTrackerData());
+      setHasLoaded(true);
+    };
+
+    refreshData();
+    window.addEventListener("storage", refreshData);
+    window.addEventListener("trade-tracker-data-changed", refreshData);
+
+    return () => {
+      window.removeEventListener("storage", refreshData);
+      window.removeEventListener("trade-tracker-data-changed", refreshData);
+    };
   }, []);
 
   useEffect(() => {
@@ -59,32 +63,6 @@ export default function Home() {
         stats: calculateAccountStats(nextSettings, current.trades),
       };
     });
-  };
-
-  const addTrade = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!tradeDraft.symbol.trim() || !tradeDraft.entry || !tradeDraft.exit) return;
-
-    const nextTrade: Trade = {
-      id: Date.now(),
-      symbol: tradeDraft.symbol.trim().toUpperCase(),
-      side: tradeDraft.side,
-      entry: Number(tradeDraft.entry),
-      exit: Number(tradeDraft.exit),
-      notes: tradeDraft.notes.trim(),
-      createdAt: new Date().toISOString(),
-    };
-
-    setData((current) => {
-      const nextTrades = [nextTrade, ...current.trades];
-      return {
-        ...current,
-        trades: nextTrades,
-        stats: calculateAccountStats(current.settings, nextTrades),
-      };
-    });
-
-    setTradeDraft(createTradeDraft());
   };
 
   const dashboardCards = [
@@ -205,67 +183,12 @@ export default function Home() {
 
         {activeTab === "add" && (
           <section className="mt-4 rounded-[28px] border border-white/10 bg-slate-900/70 p-4 shadow-[0_20px_80px_rgba(2,6,23,0.4)] backdrop-blur-xl sm:p-5">
-            <form onSubmit={addTrade} className="grid gap-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="text-sm text-slate-300">
-                  Symbol
-                  <input
-                    value={tradeDraft.symbol}
-                    onChange={(event) => setTradeDraft((current) => ({ ...current, symbol: event.target.value }))}
-                    className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-2 text-white outline-none"
-                    placeholder="AAPL"
-                    required
-                  />
-                </label>
-                <label className="text-sm text-slate-300">
-                  Side
-                  <select
-                    value={tradeDraft.side}
-                    onChange={(event) => setTradeDraft((current) => ({ ...current, side: event.target.value as Trade["side"] }))}
-                    className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-2 text-white outline-none"
-                  >
-                    <option value="Buy">Buy</option>
-                    <option value="Sell">Sell</option>
-                  </select>
-                </label>
-                <label className="text-sm text-slate-300">
-                  Entry
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={tradeDraft.entry}
-                    onChange={(event) => setTradeDraft((current) => ({ ...current, entry: event.target.value }))}
-                    className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-2 text-white outline-none"
-                    placeholder="100"
-                    required
-                  />
-                </label>
-                <label className="text-sm text-slate-300">
-                  Exit
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={tradeDraft.exit}
-                    onChange={(event) => setTradeDraft((current) => ({ ...current, exit: event.target.value }))}
-                    className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-2 text-white outline-none"
-                    placeholder="110"
-                    required
-                  />
-                </label>
-              </div>
-              <label className="text-sm text-slate-300">
-                Notes
-                <textarea
-                  value={tradeDraft.notes}
-                  onChange={(event) => setTradeDraft((current) => ({ ...current, notes: event.target.value }))}
-                  className="mt-1 min-h-24 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-2 text-white outline-none"
-                  placeholder="Add context for this trade"
-                />
-              </label>
-              <button type="submit" className="rounded-2xl bg-emerald-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-400">
-                Save trade locally
-              </button>
-            </form>
+            <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm text-emerald-300">
+              Open the dedicated add-trade page to save a new trade locally.
+            </div>
+            <Link href="/add" className="mt-4 inline-flex rounded-2xl bg-emerald-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-400">
+              Go to Add Trade
+            </Link>
           </section>
         )}
 
@@ -282,13 +205,13 @@ export default function Home() {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-semibold text-white">{trade.symbol}</p>
-                        <p className="text-sm text-slate-400">{trade.side} • {new Date(trade.createdAt).toLocaleDateString()}</p>
+                        <p className="text-sm text-slate-400">{trade.date || new Date(trade.createdAt).toLocaleDateString()}</p>
                       </div>
                       <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-sm text-emerald-300">
-                        {trade.entry} → {trade.exit}
+                        {trade.profitLoss >= 0 ? "+" : ""}{trade.profitLoss}
                       </span>
                     </div>
-                    {trade.notes ? <p className="mt-2 text-sm text-slate-400">{trade.notes}</p> : null}
+                    {trade.lotSize ? <p className="mt-2 text-sm text-slate-400">Lot size: {trade.lotSize}</p> : null}
                   </article>
                 ))
               )}
@@ -446,6 +369,21 @@ export default function Home() {
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-1">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
+              if (tab.href) {
+                return (
+                  <Link
+                    key={tab.id}
+                    href={tab.href}
+                    className={`flex min-w-[70px] flex-1 flex-col items-center rounded-2xl px-1 py-2 text-[10px] font-medium transition sm:min-w-[90px] ${
+                      isActive ? "bg-emerald-500/15 text-emerald-300" : "text-slate-400 hover:bg-white/5 hover:text-slate-100"
+                    }`}
+                  >
+                    <span className="text-base">{tab.icon}</span>
+                    <span className="mt-1">{tab.label}</span>
+                  </Link>
+                );
+              }
+
               return (
                 <button
                   key={tab.id}

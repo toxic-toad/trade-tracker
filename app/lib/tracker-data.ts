@@ -15,11 +15,10 @@ export interface Settings {
 
 export interface Trade {
   id: number;
+  date: string;
+  profitLoss: number;
+  lotSize?: number;
   symbol: string;
-  side: "Buy" | "Sell";
-  entry: number;
-  exit: number;
-  notes: string;
   createdAt: string;
 }
 
@@ -64,17 +63,13 @@ export function createDefaultData(): TrackerData {
 }
 
 export function calculateAccountStats(settings: Settings, trades: Trade[]): AccountStats {
-  const grossProfit = trades.reduce((sum, trade) => {
-    const pnl = trade.side === "Buy" ? trade.exit - trade.entry : trade.entry - trade.exit;
-    return sum + pnl;
-  }, 0);
-
+  const grossProfit = trades.reduce((sum, trade) => sum + trade.profitLoss, 0);
   const effectiveProfit = grossProfit * (settings.profitSplit / 100);
   const currentBalance = settings.startingBalance + effectiveProfit;
   const profitRemainingUntilPayout = Math.max(0, settings.minimumProfitForPayout - effectiveProfit);
 
-  const uniqueDays = new Set(trades.map((trade) => trade.createdAt.slice(0, 10))).size;
-  const anchorDate = trades.length > 0 ? new Date(trades[0].createdAt) : new Date();
+  const uniqueDays = new Set(trades.map((trade) => trade.date || trade.createdAt.slice(0, 10))).size;
+  const anchorDate = trades.length > 0 ? new Date(trades[0].date || trades[0].createdAt) : new Date();
   const nextPayoutDate = new Date(anchorDate);
   nextPayoutDate.setDate(anchorDate.getDate() + settings.payoutCycleDays);
 

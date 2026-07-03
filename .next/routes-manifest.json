@@ -26,6 +26,18 @@
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/add",
+      "regex": "^/add(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/add(?:/)?$"
+    },
+    {
+      "page": "/history",
+      "regex": "^/history(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/history(?:/)?$"
     }
   ],
   "dataRoutes": [],
