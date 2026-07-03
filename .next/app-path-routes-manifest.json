@@ -1,10 +1,10 @@
 {
-  "/add/page": "/add",
-  "/page": "/",
   "/_not-found/page": "/_not-found",
   "/edit/[id]/page": "/edit/[id]",
-  "/goals/page": "/goals",
   "/financial/page": "/financial",
-  "/history/page": "/history",
-  "/settings/page": "/settings"
+  "/add/page": "/add",
+  "/goals/page": "/goals",
+  "/page": "/",
+  "/settings/page": "/settings",
+  "/history/page": "/history"
 }

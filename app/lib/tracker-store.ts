@@ -7,6 +7,7 @@ import type { Settings, TrackerData, Trade } from "./tracker-models";
 
 const listeners = new Set<() => void>();
 let currentData = createDefaultData();
+const serverSnapshot = createDefaultData();
 
 function emit() {
   listeners.forEach((listener) => listener());
@@ -15,6 +16,17 @@ function emit() {
 function hydrate() {
   currentData = readTrackerData();
   emit();
+}
+
+function getSnapshot() {
+  if (typeof window !== "undefined" && !window.__TRADE_TRACKER_INITIALIZED__) {
+    initializeTrackerStore();
+  }
+  return currentData;
+}
+
+function getServerSnapshot() {
+  return serverSnapshot;
 }
 
 export function initializeTrackerStore() {
@@ -28,10 +40,7 @@ export function initializeTrackerStore() {
 }
 
 export function getTrackerData(): TrackerData {
-  if (typeof window !== "undefined" && !window.__TRADE_TRACKER_INITIALIZED__) {
-    initializeTrackerStore();
-  }
-  return currentData;
+  return getSnapshot();
 }
 
 export function subscribeTrackerStore(listener: () => void) {
@@ -97,7 +106,7 @@ export function useTrackerStore() {
     initializeTrackerStore();
   }, []);
 
-  return useSyncExternalStore(subscribeTrackerStore, getTrackerData, createDefaultData);
+  return useSyncExternalStore(subscribeTrackerStore, getSnapshot, getServerSnapshot);
 }
 
 interface WindowWithTracker extends Window {
