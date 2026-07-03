@@ -5,8 +5,11 @@ export interface Settings {
   minimumTradingDays: number;
   minimumProfitForPayout: number;
   payoutCycleDays: 7 | 14;
+  cycleStartDate: string;
+  currentCycleNumber: number;
   currentDebt: number;
   monthlySalary: number;
+  monthlyEmi: number;
   monthlySalaryContribution: number;
   usdToInr: number;
 }
@@ -45,14 +48,17 @@ export interface TrackerData {
 }
 
 export const defaultSettings: Settings = {
-  accountSize: 10000,
+  accountSize: 2500,
   startingBalance: 1000,
   profitSplit: 80,
-  minimumTradingDays: 20,
-  minimumProfitForPayout: 1500,
+  minimumTradingDays: 5,
+  minimumProfitForPayout: 100,
   payoutCycleDays: 14,
+  cycleStartDate: new Date().toISOString().slice(0, 10),
+  currentCycleNumber: 1,
   currentDebt: 250000,
   monthlySalary: 90000,
+  monthlyEmi: 12000,
   monthlySalaryContribution: 12000,
   usdToInr: 84,
 };

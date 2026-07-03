@@ -2,19 +2,15 @@
 
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
+import { CalendarDays, PlusCircle, Save, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { AppButton, AppCard, AppInput, FormField, PageHeader, PageShell } from "../components/ui-primitives";
 import type { Trade } from "../lib/tracker-data";
 import { addTrade } from "../lib/tracker-store";
 
 const todayString = () => new Date().toISOString().slice(0, 10);
 
-const emptyDraft = () => ({
-  date: todayString(),
-  profitLoss: "",
-  lotSize: "",
-  symbol: "XAUUSD",
-});
+const emptyDraft = () => ({ date: todayString(), profitLoss: "", lotSize: "", symbol: "XAUUSD" });
 
 export default function AddTradePage() {
   const [draft, setDraft] = useState(emptyDraft);
@@ -53,88 +49,59 @@ export default function AddTradePage() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.16),_transparent_35%),linear-gradient(135deg,_#020617_0%,_#0f172a_60%,_#111827_100%)] text-slate-100">
+    <PageShell>
       <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 py-4 sm:px-6 lg:px-8">
-        <header className="rounded-[28px] border border-white/10 bg-slate-900/70 p-4 shadow-[0_20px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-emerald-400">Add Trade</p>
-              <h1 className="mt-2 text-2xl font-semibold text-white">Record a new trade</h1>
-              <p className="mt-2 text-sm text-slate-300">Everything is stored locally and synced instantly to your dashboard.</p>
-            </div>
-            <Link href="/" className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-300">
-              Back
-            </Link>
-          </div>
-        </header>
+        <PageHeader
+          eyebrow="Add Trade"
+          title="Record a new trade"
+          description="Everything is stored locally and synced instantly to your dashboard."
+          action={<div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-300">Local save</div>}
+        />
 
-        <section className="mt-4 rounded-[28px] border border-white/10 bg-slate-900/70 p-4 shadow-[0_20px_80px_rgba(2,6,23,0.4)] backdrop-blur-xl sm:p-5">
+        <AppCard accent="cyan" className="mt-4 animate-[fadeIn_400ms_ease-out]">
           <form onSubmit={handleSubmit} className="grid gap-4">
-            <label className="text-sm text-slate-300">
-              Date
-              <input
-                type="date"
-                value={draft.date}
-                onChange={(event) => setDraft((current) => ({ ...current, date: event.target.value }))}
-                className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-white outline-none"
-              />
-            </label>
+            <FormField label="Date">
+              <div className="relative">
+                <CalendarDays className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                <AppInput type="date" value={draft.date} onChange={(event) => setDraft((current) => ({ ...current, date: event.target.value }))} className="pl-10" />
+              </div>
+            </FormField>
 
-            <label className="text-sm text-slate-300">
-              Profit / Loss
-              <input
-                type="number"
-                step="0.01"
-                value={draft.profitLoss}
-                onChange={(event) => setDraft((current) => ({ ...current, profitLoss: event.target.value }))}
-                className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-white outline-none"
-                placeholder="e.g. 125.5 or -45"
-                required
-              />
-            </label>
+            <FormField label="Profit / Loss" hint="Positive or negative values are both accepted.">
+              <AppInput type="number" step="0.01" value={draft.profitLoss} onChange={(event) => setDraft((current) => ({ ...current, profitLoss: event.target.value }))} placeholder="e.g. 125.5 or -45" required />
+            </FormField>
 
-            <label className="text-sm text-slate-300">
-              Lot Size
-              <input
-                type="number"
-                step="0.01"
-                value={draft.lotSize}
-                onChange={(event) => setDraft((current) => ({ ...current, lotSize: event.target.value }))}
-                className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-white outline-none"
-                placeholder="Optional"
-              />
-            </label>
+            <FormField label="Lot Size">
+              <AppInput type="number" step="0.01" value={draft.lotSize} onChange={(event) => setDraft((current) => ({ ...current, lotSize: event.target.value }))} placeholder="Optional" />
+            </FormField>
 
-            <label className="text-sm text-slate-300">
-              Symbol
-              <input
-                value={draft.symbol}
-                onChange={(event) => setDraft((current) => ({ ...current, symbol: event.target.value }))}
-                className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-white outline-none"
-                placeholder="XAUUSD"
-              />
-            </label>
+            <FormField label="Symbol">
+              <AppInput value={draft.symbol} onChange={(event) => setDraft((current) => ({ ...current, symbol: event.target.value }))} placeholder="XAUUSD" />
+            </FormField>
 
             <div className="flex flex-col gap-3 pt-1 sm:flex-row">
-              <button type="submit" className="flex-1 rounded-2xl bg-emerald-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-400">
+              <AppButton type="submit" variant="primary" className="flex-1">
+                <Save size={16} />
                 Save Trade
-              </button>
-              <button
+              </AppButton>
+              <AppButton
                 type="button"
+                variant="secondary"
+                className="flex-1"
                 onClick={() => {
                   setDraft(emptyDraft());
                   setStatus(null);
                 }}
-                className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-semibold text-slate-300 transition hover:bg-white/10"
               >
+                <XCircle size={16} />
                 Cancel
-              </button>
+              </AppButton>
             </div>
 
-            {status ? <p className="text-sm text-emerald-300">{status}</p> : null}
+            {status ? <p className="text-sm text-cyan-300">{status}</p> : null}
           </form>
-        </section>
+        </AppCard>
       </div>
-    </main>
+    </PageShell>
   );
 }

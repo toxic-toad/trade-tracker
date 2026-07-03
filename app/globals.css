@@ -7,11 +7,12 @@
 }
 
 html {
-  background-color: #020617;
+  background-color: #000000;
 }
 
 body {
-  @apply min-h-screen bg-slate-950 text-slate-100 antialiased;
+  @apply min-h-screen bg-[#000000] text-slate-100 antialiased;
+  font-feature-settings: "ss01" on, "cv01" on;
 }
 
 * {
@@ -19,6 +20,36 @@ body {
 }
 
 ::selection {
-  background: rgba(16, 185, 129, 0.35);
+  background: rgba(34, 211, 238, 0.35);
   color: white;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatGlow {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at top left, rgba(34, 211, 238, 0.12), transparent 28%), radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.12), transparent 22%);
+  z-index: -1;
 }

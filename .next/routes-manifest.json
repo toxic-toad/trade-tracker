@@ -13,7 +13,16 @@
     }
   ],
   "headers": [],
-  "dynamicRoutes": [],
+  "dynamicRoutes": [
+    {
+      "page": "/edit/[id]",
+      "regex": "^/edit/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/edit/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
   "staticRoutes": [
     {
       "page": "/",
@@ -50,6 +59,12 @@
       "regex": "^/history(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/history(?:/)?$"
+    },
+    {
+      "page": "/settings",
+      "regex": "^/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/settings(?:/)?$"
     }
   ],
   "dataRoutes": [],

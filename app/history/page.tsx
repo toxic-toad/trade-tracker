@@ -2,13 +2,37 @@
 
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
-import { useMemo } from "react";
+import { Sparkles, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { AppButton, AppCard, EmptyState, PageHeader, PageShell, SkeletonCard, StatCard } from "../components/ui-primitives";
 import { formatCurrency, formatPercent } from "../lib/tracker-data";
 import { removeTrade, useTrackerStore } from "../lib/tracker-store";
 
+const TOAST_KEY = "trade-tracker-toast";
+
 export default function HistoryPage() {
   const data = useTrackerStore();
+  const router = useRouter();
+  const [toast, setToast] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIsReady(true), 120);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const message = window.sessionStorage.getItem(TOAST_KEY);
+    if (message) {
+      setToast(message);
+      window.sessionStorage.removeItem(TOAST_KEY);
+      const timeoutId = window.setTimeout(() => setToast(null), 2200);
+      return () => window.clearTimeout(timeoutId);
+    }
+  }, []);
 
   const sortedTrades = useMemo(() => {
     return [...data.trades].sort((left, right) => {
@@ -18,9 +42,7 @@ export default function HistoryPage() {
     });
   }, [data.trades]);
 
-  const totalProfit = useMemo(() => {
-    return data.trades.reduce((sum, trade) => sum + trade.profitLoss, 0);
-  }, [data.trades]);
+  const totalProfit = useMemo(() => data.trades.reduce((sum, trade) => sum + trade.profitLoss, 0), [data.trades]);
 
   const winRate = useMemo(() => {
     if (data.trades.length === 0) return 0;
@@ -36,90 +58,60 @@ export default function HistoryPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.16),_transparent_35%),linear-gradient(135deg,_#020617_0%,_#0f172a_60%,_#111827_100%)] text-slate-100">
+    <PageShell>
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-4 pb-24 sm:px-6 lg:px-8 lg:pb-8">
-        <header className="rounded-[28px] border border-white/10 bg-slate-900/70 p-4 shadow-[0_20px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-emerald-400">History</p>
-              <h1 className="mt-2 text-2xl font-semibold text-white">Your private trade log</h1>
-              <p className="mt-2 text-sm text-slate-300">Every trade is stored locally and stays available offline.</p>
-            </div>
-            <Link href="/" className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-300">
-              Back
-            </Link>
-          </div>
-        </header>
+        {toast ? <div className="fixed right-4 top-4 z-50 rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-300 shadow-lg backdrop-blur">{toast}</div> : null}
+
+        <PageHeader eyebrow="History" title="Your private trade log" description="Every trade is stored locally and stays available offline." action={<div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-300">Offline history</div>} />
 
         <section className="mt-4 grid gap-3 sm:grid-cols-3">
-          <article className="rounded-[24px] border border-white/10 bg-slate-900/70 p-4 shadow-[0_16px_60px_rgba(2,6,23,0.24)] backdrop-blur-xl">
-            <p className="text-sm text-slate-400">Total trades</p>
-            <p className="mt-2 text-2xl font-semibold text-white">{data.trades.length}</p>
-          </article>
-          <article className="rounded-[24px] border border-white/10 bg-slate-900/70 p-4 shadow-[0_16px_60px_rgba(2,6,23,0.24)] backdrop-blur-xl">
-            <p className="text-sm text-slate-400">Total profit</p>
-            <p className={`mt-2 text-2xl font-semibold ${totalProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-              {formatCurrency(totalProfit, data.settings.usdToInr)}
-            </p>
-          </article>
-          <article className="rounded-[24px] border border-white/10 bg-slate-900/70 p-4 shadow-[0_16px_60px_rgba(2,6,23,0.24)] backdrop-blur-xl">
-            <p className="text-sm text-slate-400">Win rate</p>
-            <p className="mt-2 text-2xl font-semibold text-white">{formatPercent(winRate)}</p>
-          </article>
+          <StatCard label="Total trades" value={String(data.trades.length)} icon={<Sparkles size={16} />} />
+          <StatCard label="Total profit" value={formatCurrency(totalProfit, data.settings.usdToInr)} valueClassName={totalProfit >= 0 ? "text-emerald-300" : "text-rose-300"} icon={<Sparkles size={16} />} />
+          <StatCard label="Win rate" value={formatPercent(winRate)} icon={<Sparkles size={16} />} />
         </section>
 
-        <section className="mt-4 rounded-[28px] border border-white/10 bg-slate-900/70 p-4 shadow-[0_20px_80px_rgba(2,6,23,0.4)] backdrop-blur-xl sm:p-5">
-          {sortedTrades.length === 0 ? (
-            <div className="flex flex-col items-start gap-4 rounded-2xl border border-dashed border-white/10 p-5 text-left">
-              <div>
-                <p className="text-lg font-semibold text-white">No trades yet</p>
-                <p className="mt-1 text-sm text-slate-400">Start building your offline history with your first trade.</p>
-              </div>
-              <Link href="/add" className="rounded-2xl bg-emerald-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-400">
-                Add your first trade
-              </Link>
+        <section className="mt-4">
+          {!isReady ? (
+            <div className="grid gap-3">
+              <SkeletonCard className="h-24" />
+              <SkeletonCard className="h-24" />
             </div>
+          ) : sortedTrades.length === 0 ? (
+            <EmptyState title="No trades yet" description="Start building your offline history with your first trade." action={<AppButton variant="primary" onClick={() => router.push("/add")}>Add your first trade</AppButton>} />
           ) : (
             <div className="space-y-3">
-              {sortedTrades.map((trade) => {
+              {sortedTrades.map((trade, index) => {
                 const isProfit = trade.profitLoss >= 0;
                 return (
-                  <article key={trade.id} className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-                    <div className="flex items-start justify-between gap-3">
+                  <AppCard key={trade.id} accent="default" className="cursor-pointer animate-[fadeIn_400ms_ease-out]" interactive onClick={() => router.push(`/edit/${trade.id}`)}>
+                    <div className="flex items-start justify-between gap-3" style={{ animationDelay: `${index * 60}ms` }}>
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-semibold text-white">{trade.symbol}</p>
-                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${isProfit ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"}`}>
-                            {isProfit ? "Profit" : "Loss"}
-                          </span>
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${isProfit ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"}`}>{isProfit ? "Profit" : "Loss"}</span>
                         </div>
                         <p className="mt-1 text-sm text-slate-400">{trade.date || new Date(trade.createdAt).toLocaleDateString()}</p>
                       </div>
                       <div className="text-right">
-                        <p className={`text-lg font-semibold ${isProfit ? "text-emerald-400" : "text-rose-400"}`}>
-                          {isProfit ? "+" : ""}{trade.profitLoss.toFixed(2)}
-                        </p>
+                        <p className={`text-lg font-semibold ${isProfit ? "text-emerald-300" : "text-rose-300"}`}>{isProfit ? "+" : ""}{trade.profitLoss.toFixed(2)}</p>
                         {trade.lotSize ? <p className="mt-1 text-xs text-slate-500">Lot size {trade.lotSize}</p> : null}
                       </div>
                     </div>
 
-                    <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="mt-4 flex items-center justify-between gap-3">
                       <p className="text-sm text-slate-400">{trade.date ? "Recorded on date" : "Saved locally"}</p>
-                      <button
-                        type="button"
-                        onClick={() => deleteTrade(trade.id)}
-                        className="rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-sm font-medium text-rose-300 transition hover:bg-rose-500/20"
-                      >
+                      <AppButton type="button" variant="danger" onClick={(event) => { event.stopPropagation(); deleteTrade(trade.id); }} className="px-3 py-2">
+                        <Trash2 size={14} />
                         Delete
-                      </button>
+                      </AppButton>
                     </div>
-                  </article>
+                  </AppCard>
                 );
               })}
             </div>
           )}
         </section>
       </div>
-    </main>
+    </PageShell>
   );
 }

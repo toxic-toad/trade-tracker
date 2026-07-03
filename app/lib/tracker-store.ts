@@ -70,6 +70,17 @@ export function addTrade(trade: Trade) {
   setTrackerData(nextData);
 }
 
+export function updateTrade(updatedTrade: Trade) {
+  const data = getTrackerData();
+  const nextTrades = data.trades.map((trade) => (trade.id === updatedTrade.id ? updatedTrade : trade));
+  const nextData = {
+    ...data,
+    trades: nextTrades,
+    stats: calculateAccountStats(data.settings, nextTrades),
+  };
+  setTrackerData(nextData);
+}
+
 export function removeTrade(tradeId: number) {
   const data = getTrackerData();
   const nextTrades = data.trades.filter((trade) => trade.id !== tradeId);
