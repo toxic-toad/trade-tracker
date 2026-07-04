@@ -65,6 +65,10 @@ export function AppSelect({ className = "", ...props }: React.SelectHTMLAttribut
   return <select className={`w-full rounded-2xl border border-slate-800/90 bg-slate-950/80 px-3 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:bg-slate-900 ${className}`} {...props} />;
 }
 
+export function AppTextarea({ className = "", ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea className={`w-full rounded-2xl border border-slate-800/90 bg-slate-950/80 px-3 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:bg-slate-900 ${className}`} {...props} />;
+}
+
 export function PageHeader({ eyebrow, title, description, action }: { eyebrow: string; title: string; description: string; action?: ReactNode }) {
   return (
     <header className="rounded-[30px] border border-slate-800/90 bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.18),_transparent_32%),linear-gradient(135deg,_rgba(2,6,23,0.98),_rgba(7,18,38,0.95))] p-4 shadow-[0_20px_80px_rgba(2,6,23,0.45)] sm:p-6">

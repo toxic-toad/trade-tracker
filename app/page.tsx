@@ -3,16 +3,18 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { Activity, Home as HomeIcon, History, PlusCircle, Settings, Target, WalletCards } from "lucide-react";
+import { Activity, BarChart3, Home as HomeIcon, History, PlusCircle, Settings, Target, WalletCards } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { AppCard, AppLinkButton, PageHeader, PageShell, SkeletonCard, StatCard } from "./components/ui-primitives";
 import { formatCurrency, formatPercent, type TabId } from "./lib/tracker-data";
+import { getDashboardMetrics } from "./lib/tracker-calculations";
 import { useTrackerStore } from "./lib/tracker-store";
 
 const tabs: Array<{ id: TabId; label: string; icon: typeof HomeIcon; href?: string }> = [
   { id: "dashboard", label: "Dashboard", icon: HomeIcon, href: "/" },
   { id: "add", label: "Add Trade", icon: PlusCircle, href: "/add" },
   { id: "history", label: "History", icon: History },
+  { id: "analytics", label: "Analytics", icon: BarChart3, href: "/analytics" },
   { id: "payout", label: "Goals", icon: Target, href: "/goals" },
   { id: "debt", label: "Financial Progress", icon: WalletCards, href: "/financial" },
   { id: "settings", label: "Settings", icon: Settings, href: "/settings" },
@@ -29,6 +31,24 @@ export default function Home() {
   }, []);
 
   const stats = useMemo(() => data.stats, [data.stats]);
+
+  const metrics = useMemo(() => getDashboardMetrics(data.trades), [data.trades]);
+
+  const performanceCards = useMemo(
+    () => [
+      { title: "Today's Profit/Loss", value: formatCurrency(metrics.todayProfit, data.settings.usdToInr), tone: metrics.todayProfit >= 0 ? "text-emerald-300" : "text-rose-300" },
+      { title: "This Week", value: formatCurrency(metrics.weekProfit, data.settings.usdToInr), tone: metrics.weekProfit >= 0 ? "text-emerald-300" : "text-rose-300" },
+      { title: "This Month", value: formatCurrency(metrics.monthProfit, data.settings.usdToInr), tone: metrics.monthProfit >= 0 ? "text-emerald-300" : "text-rose-300" },
+      { title: "Average Daily Profit", value: formatCurrency(metrics.averageDailyProfit, data.settings.usdToInr), tone: metrics.averageDailyProfit >= 0 ? "text-emerald-300" : "text-rose-300" },
+      { title: "Average Winning Trade", value: formatCurrency(stats.averageProfitPerWinningTrade, data.settings.usdToInr), tone: "text-emerald-300" },
+      { title: "Average Losing Trade", value: formatCurrency(-stats.averageLossPerLosingTrade, data.settings.usdToInr), tone: "text-rose-300" },
+      { title: "Largest Win", value: formatCurrency(metrics.largestWin, data.settings.usdToInr), tone: "text-emerald-300" },
+      { title: "Largest Loss", value: formatCurrency(metrics.largestLoss, data.settings.usdToInr), tone: "text-rose-300" },
+      { title: "Current Win Streak", value: String(stats.currentWinStreak), tone: "text-white" },
+      { title: "Best Win Streak", value: String(stats.bestWinStreak), tone: "text-white" },
+    ],
+    [metrics, stats.averageProfitPerWinningTrade, stats.averageLossPerLosingTrade, stats.currentWinStreak, stats.bestWinStreak, data.settings.usdToInr],
+  );
 
   const dashboardCards = useMemo(
     () => [
@@ -47,6 +67,7 @@ export default function Home() {
     dashboard: { title: "Daily overview", description: "Your private finance cockpit stays local, fast, and available offline.", accent: "Offline-first" },
     add: { title: "Add trade", description: "Capture a new trade quickly without syncing or leaving the app.", accent: "Quick capture" },
     history: { title: "Trade history", description: "Review all trades in one private place with zero cloud dependency.", accent: "Local history" },
+    analytics: { title: "Analytics", description: "Visualize your edge with local-only charts and performance metrics.", accent: "Insights" },
     payout: { title: "Goals", description: "Track payout progress, consistency, and debt motivation from your own data.", accent: "Goal focus" },
     debt: { title: "Financial progress", description: "Monitor debt payoff, income flow, and your forecast from your own data.", accent: "Financial focus" },
     settings: { title: "Personal settings", description: "Adjust your account assumptions and preferences whenever you need to.", accent: "Persistent settings" },
@@ -80,17 +101,32 @@ export default function Home() {
         </AppCard>
 
         {activeTab === "dashboard" && (
-          <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {!isReady ? (
-              Array.from({ length: 6 }).map((_, index) => <SkeletonCard key={index} className="h-28" />)
-            ) : (
-              dashboardCards.map((card, index) => (
-                <div key={card.title} className="animate-[fadeIn_400ms_ease-out]" style={{ animationDelay: `${index * 70}ms` }}>
-                  <StatCard label={card.title} value={card.value} subtitle={card.subtitle} />
-                </div>
-              ))
-            )}
-          </section>
+          <>
+            <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {!isReady ? (
+                Array.from({ length: 6 }).map((_, index) => <SkeletonCard key={index} className="h-28" />)
+              ) : (
+                dashboardCards.map((card, index) => (
+                  <div key={card.title} className="animate-[fadeIn_400ms_ease-out]" style={{ animationDelay: `${index * 70}ms` }}>
+                    <StatCard label={card.title} value={card.value} subtitle={card.subtitle} />
+                  </div>
+                ))
+              )}
+            </section>
+
+            <h2 className="mt-6 text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">Performance metrics</h2>
+            <section className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {!isReady ? (
+                Array.from({ length: 6 }).map((_, index) => <SkeletonCard key={index} className="h-24" />)
+              ) : (
+                performanceCards.map((card, index) => (
+                  <div key={card.title} className="animate-[fadeIn_400ms_ease-out]" style={{ animationDelay: `${index * 60}ms` }}>
+                    <StatCard label={card.title} value={card.value} valueClassName={card.tone} />
+                  </div>
+                ))
+              )}
+            </section>
+          </>
         )}
 
         {activeTab === "add" && (

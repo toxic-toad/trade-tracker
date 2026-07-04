@@ -21,6 +21,12 @@ export interface Trade {
   lotSize?: number;
   symbol: string;
   createdAt: string;
+  riskAmount?: number;
+  notes?: string;
+  strategy?: string;
+  mistake?: string;
+  emotion?: string;
+  screenshotUrl?: string;
 }
 
 export interface AccountStats {

@@ -4,19 +4,11 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { STORAGE_KEY, createDefaultData, readTrackerData, writeTrackerData } from "../lib/tracker-data";
+import { STORAGE_KEY, createDefaultData, isValidDateInput, readTrackerData, writeTrackerData } from "../lib/tracker-data";
 import type { Settings, TrackerData } from "../lib/tracker-models";
 import { setTrackerData, updateTrackerSettings, useTrackerStore } from "../lib/tracker-store";
 
 const APP_VERSION = "1.0.0";
-
-function isValidDateInput(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
-}
 
 function getStorageUsage() {
   if (typeof navigator === "undefined" || !navigator.storage?.estimate) return null;
