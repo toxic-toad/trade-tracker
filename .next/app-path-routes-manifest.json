@@ -1,0 +1,11 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/add/page": "/add",
+  "/analytics/page": "/analytics",
+  "/financial/page": "/financial",
+  "/goals/page": "/goals",
+  "/history/page": "/history",
+  "/edit/[id]/page": "/edit/[id]",
+  "/page": "/",
+  "/settings/page": "/settings"
+}
