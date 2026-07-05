@@ -1,0 +1,147 @@
+
+> trade-tracker@1.0.0 dev
+> next dev -p 3000
+
+   ▲ Next.js 15.3.3
+   - Local:        http://localhost:3000
+   - Network:      http://10.213.2.225:3000
+
+ ✓ Starting...
+> [PWA] PWA support is disabled
+> [PWA] PWA support is disabled
+ ✓ Ready in 10.8s
+ ○ Compiling / ...
+ ✓ Compiled / in 8.3s (784 modules)
+ GET / 200 in 9079ms
+ ✓ Compiled in 948ms (352 modules)
+ ○ Compiling /add ...
+ ✓ Compiled /add in 4.4s (791 modules)
+ GET /add 200 in 5083ms
+ ○ Compiling /history ...
+ ✓ Compiled /history in 916ms (802 modules)
+ GET /history 200 in 1560ms
+ ○ Compiling /analytics ...
+ ✓ Compiled /analytics in 787ms (821 modules)
+ GET /analytics 200 in 1181ms
+ ○ Compiling /goals ...
+ ✓ Compiled /goals in 608ms (830 modules)
+ GET /goals 200 in 1056ms
+ ○ Compiling /financial ...
+ ✓ Compiled /financial in 698ms (837 modules)
+ GET /financial 200 in 1020ms
+ ○ Compiling /settings ...
+ ✓ Compiled /settings in 748ms (844 modules)
+ GET /settings 200 in 1269ms
+ GET / 200 in 726ms
+ GET /financial 200 in 64ms
+ GET /analytics 200 in 52ms
+ GET /history 200 in 54ms
+ GET /add 200 in 43ms
+ GET / 200 in 31ms
+ GET /add 200 in 35ms
+ GET /history 200 in 44ms
+ GET /settings 200 in 38ms
+ GET /add 200 in 38ms
+ GET / 200 in 36ms
+ GET /settings 200 in 45ms
+ GET /history 200 in 42ms
+ GET / 200 in 33ms
+ GET /add 200 in 34ms
+ GET / 200 in 34ms
+ GET /settings 200 in 34ms
+ GET / 200 in 28ms
+ GET /settings 200 in 38ms
+ GET / 200 in 32ms
+ GET /add 200 in 53ms
+ GET / 200 in 35ms
+ GET /add 200 in 34ms
+ GET / 200 in 35ms
+ GET /add 200 in 34ms
+ GET / 200 in 31ms
+ GET /history 200 in 34ms
+ GET /analytics 200 in 32ms
+ GET /goals 200 in 49ms
+ GET / 200 in 30ms
+ GET /financial 200 in 35ms
+ GET / 200 in 34ms
+ GET / 200 in 158ms
+ ✓ Compiled in 4.3s (839 modules)
+ GET / 200 in 624ms
+ GET / 200 in 839ms
+ ○ Compiling /_error ...
+ GET /financial 500 in 5947ms
+ GET / 200 in 3408ms
+ ✓ Compiled /_not-found in 12s (1163 modules)
+ GET /_next/static/css/app/layout.css?v=1783273495241 404 in 6136ms
+ GET /_next/static/chunks/main-app.js?v=1783273495241 404 in 5629ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 867ms
+ GET /_next/static/chunks/app/page.js 404 in 862ms
+ GET / 200 in 497ms
+ GET /_next/static/css/app/layout.css?v=1783273555718 404 in 109ms
+ GET /_next/static/chunks/main-app.js?v=1783273555718 404 in 125ms
+ GET /_next/static/chunks/app/page.js 404 in 263ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 272ms
+ GET / 200 in 220ms
+ GET /_next/static/css/app/layout.css?v=1783273557425 404 in 99ms
+ GET /_next/static/chunks/main-app.js?v=1783273557425 404 in 102ms
+ GET /_next/static/chunks/app/page.js 404 in 176ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 181ms
+ GET / 200 in 267ms
+ GET /_next/static/css/app/layout.css?v=1783273558959 404 in 141ms
+ GET /_next/static/chunks/main-app.js?v=1783273558959 404 in 543ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 411ms
+ GET /_next/static/chunks/app/page.js 404 in 408ms
+ GET / 200 in 214ms
+ GET /_next/static/css/app/layout.css?v=1783273560334 404 in 153ms
+ GET /_next/static/chunks/main-app.js?v=1783273560334 404 in 382ms
+ GET /_next/static/chunks/app/page.js 404 in 380ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 379ms
+ GET / 200 in 106ms
+ GET /_next/static/css/app/layout.css?v=1783273561391 404 in 88ms
+ GET /_next/static/chunks/main-app.js?v=1783273561391 404 in 3345ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 1832ms
+ GET /_next/static/chunks/app/page.js 404 in 1857ms
+ GET / 200 in 131ms
+ GET /_next/static/css/app/layout.css?v=1783273567385 404 in 72ms
+ GET /_next/static/chunks/app/page.js 404 in 166ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 169ms
+ GET /_next/static/chunks/main-app.js?v=1783273567385 404 in 175ms
+ ○ Compiling /add ...
+ ✓ Compiled /add in 917ms (517 modules)
+ GET /add 200 in 1997ms
+ GET / 200 in 359ms
+ GET /_next/static/css/app/layout.css?v=1783273637323 404 in 174ms
+ GET /_next/static/chunks/main-app.js?v=1783273637323 404 in 570ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 463ms
+ GET /_next/static/chunks/app/page.js 404 in 462ms
+ GET /add 200 in 321ms
+ GET /_next/static/css/app/layout.css?v=1783273639162 404 in 209ms
+ GET /_next/static/chunks/main-app.js?v=1783273639162 404 in 439ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 434ms
+ GET /_next/static/chunks/app/add/page.js 404 in 433ms
+ GET / 200 in 403ms
+ GET /_next/static/css/app/layout.css?v=1783273643807 404 in 240ms
+ GET /_next/static/chunks/main-app.js?v=1783273643807 404 in 262ms
+ GET /_next/static/chunks/app/page.js 404 in 604ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 638ms
+ GET /add 200 in 326ms
+ GET /_next/static/css/app/layout.css?v=1783273648187 404 in 186ms
+ GET /_next/static/chunks/main-app.js?v=1783273648187 404 in 497ms
+ GET /_next/static/chunks/app/add/page.js 404 in 460ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 406ms
+ GET / 200 in 165ms
+ GET /add 200 in 153ms
+ ○ Compiling /history ...
+ ✓ Compiled /history in 1281ms (523 modules)
+ GET /history 200 in 2651ms
+ GET /analytics 200 in 164ms
+ GET /goals 200 in 191ms
+ GET /financial 200 in 231ms
+ GET /settings 200 in 288ms
+ GET / 200 in 616ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1626ms (1134 modules)
+ GET /_next/static/css/app/layout.css?v=1783273848945 404 in 2172ms
+ GET /_next/static/chunks/main-app.js?v=1783273848945 404 in 2167ms
+ GET /_next/static/chunks/app/page.js 404 in 216ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 223ms

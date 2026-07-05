@@ -1,0 +1,28 @@
+ ⚠ Cross origin request detected from 127.0.0.1 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⨯ Error: Cannot find module './825.js'
+Require stack:
+- C:\Users\suhas\CascadeProjects\trade-tracker-main\.next\server\webpack-runtime.js
+- C:\Users\suhas\CascadeProjects\trade-tracker-main\.next\server\app\page.js
+- C:\Users\suhas\CascadeProjects\trade-tracker-main\node_modules\next\dist\server\require.js
+- C:\Users\suhas\CascadeProjects\trade-tracker-main\node_modules\next\dist\server\load-components.js
+- C:\Users\suhas\CascadeProjects\trade-tracker-main\node_modules\next\dist\build\utils.js
+- C:\Users\suhas\CascadeProjects\trade-tracker-main\node_modules\next\dist\build\swc\options.js
+- C:\Users\suhas\CascadeProjects\trade-tracker-main\node_modules\next\dist\build\swc\index.js
+- C:\Users\suhas\CascadeProjects\trade-tracker-main\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\suhas\CascadeProjects\trade-tracker-main\node_modules\next\dist\server\config.js
+- C:\Users\suhas\CascadeProjects\trade-tracker-main\node_modules\next\dist\server\next.js
+- C:\Users\suhas\CascadeProjects\trade-tracker-main\node_modules\next\dist\server\lib\start-server.js
+    at __webpack_require__.f.require (C:\Users\suhas\CascadeProjects\trade-tracker-main\.next\server\webpack-runtime.js:198:28)
+    at <unknown> (C:\Users\suhas\CascadeProjects\trade-tracker-main\.next\server\webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (C:\Users\suhas\CascadeProjects\trade-tracker-main\.next\server\webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (C:\Users\suhas\CascadeProjects\trade-tracker-main\.next\server\webpack-runtime.js:162:22)
+    at <unknown> (C:\Users\suhas\CascadeProjects\trade-tracker-main\.next\server\app\financial\page.js:1:8999)
+    at Object.<anonymous> (C:\Users\suhas\CascadeProjects\trade-tracker-main\.next\server\app\financial\page.js:1:9047) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/financial'
+}
