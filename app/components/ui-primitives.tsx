@@ -266,16 +266,18 @@ type NavTab = {
 
 const navTabs: NavTab[] = [
   { id: "dashboard", label: "Home", icon: HomeIcon, href: "/" },
-  { id: "analytics", label: "Stats", icon: BarChart3, href: "/analytics" },
   { id: "add", label: "Add", icon: PlusCircle, href: "/add" },
   { id: "history", label: "History", icon: History, href: "/history" },
-  { id: "settings", label: "More", icon: Settings, href: "/settings" },
+  { id: "analytics", label: "Stats", icon: BarChart3, href: "/analytics" },
+  { id: "goals", label: "Goals", icon: Target, href: "/goals" },
+  { id: "financial", label: "Finance", icon: WalletCards, href: "/financial" },
+  { id: "settings", label: "Settings", icon: Settings, href: "/settings" },
 ];
 
 export function BottomNavigation({ activeTab }: { activeTab: TabId }) {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-white/[0.06] bg-[#050810]/95 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-lg items-center justify-around px-1 py-1.5 sm:px-4">
+      <div className="mx-auto flex max-w-lg items-center justify-around px-0.5 py-1 sm:px-2">
         {navTabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
@@ -284,19 +286,19 @@ export function BottomNavigation({ activeTab }: { activeTab: TabId }) {
             <Link
               key={tab.id}
               href={tab.href}
-              className={`flex flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 text-[10px] font-medium transition-all duration-200 ${
+              className={`flex flex-1 flex-col items-center gap-0 rounded-xl px-0.5 py-1 text-[9px] font-medium transition-all duration-200 sm:px-2 sm:py-1.5 sm:text-[10px] ${
                 isActive
                   ? "text-cyan-400"
                   : "text-slate-500 hover:text-slate-300"
               }`}
             >
               <div className="relative">
-                <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
+                <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} className="sm:h-[18px] sm:w-[18px]" />
                 {isActive && (
-                  <div className="absolute -bottom-1 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-400 to-indigo-400" />
+                  <div className="absolute -bottom-1 left-1/2 h-0.5 w-3 -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-400 to-indigo-400 sm:w-4" />
                 )}
               </div>
-              <span className="mt-0.5">{tab.label}</span>
+              <span className="mt-0.5 leading-tight">{tab.label}</span>
             </Link>
           );
         })}
