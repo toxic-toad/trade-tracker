@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { SWRegistration } from "./sw-registration";
 
 export const metadata: Metadata = {
   title: "Trade Tracker",
@@ -9,7 +10,6 @@ export const metadata: Metadata = {
     icon: [
       { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
-      { url: "/icons/favicon.ico", sizes: "any" },
     ],
     apple: "/icons/apple-touch-icon.png",
   },
@@ -36,7 +36,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/icons/favicon-32x32.png" type="image/png" sizes="32x32" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <SWRegistration />
+      </body>
     </html>
   );
 }
