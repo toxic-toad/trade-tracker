@@ -1,20 +1,30 @@
 import type { AccountStats, Settings, Trade, TrackerData } from "./tracker-models";
+import { localDateKey, parseLocalDate } from "./tracker-data";
 
 export function calculateAccountStats(settings: Settings, trades: Trade[]): AccountStats {
   const currentCycleTrades = getCurrentCycleTrades(settings, trades);
   const totalTradeProfit = currentCycleTrades.reduce((sum, trade) => sum + trade.profitLoss, 0);
   const lifetimeProfit = trades.reduce((sum, trade) => sum + trade.profitLoss, 0);
-  const currentBalance = (settings.accountSize * settings.usdToInr) + (totalTradeProfit * settings.usdToInr);
+  const currentBalance = settings.accountSize + totalTradeProfit;
   const profitRemainingUntilPayout = Math.max(0, settings.minimumProfitForPayout - totalTradeProfit);
 
-  const uniqueDays = new Set(currentCycleTrades.map((trade) => trade.date || trade.createdAt.slice(0, 10))).size;
-  const anchorDate = settings.cycleStartDate ? new Date(`${settings.cycleStartDate}T00:00:00`) : new Date();
+  const dailyThreshold = settings.accountSize * 0.005;
+  const dayProfits = new Map<string, number>();
+  for (const trade of currentCycleTrades) {
+    const key = trade.date || trade.createdAt.slice(0, 10);
+    dayProfits.set(key, (dayProfits.get(key) ?? 0) + trade.profitLoss);
+  }
+  let validTradingDays = 0;
+  for (const profit of dayProfits.values()) {
+    if (profit >= dailyThreshold) validTradingDays++;
+  }
+
+  const anchorDate = settings.cycleStartDate ? parseLocalDate(settings.cycleStartDate) : new Date();
   const nextPayoutDate = new Date(anchorDate);
   nextPayoutDate.setDate(anchorDate.getDate() + settings.payoutCycleDays);
   nextPayoutDate.setHours(0, 0, 0, 0);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const countdownMs = nextPayoutDate.getTime() - new Date().getTime();
   const nextPayoutCountdownDays = Math.max(0, Math.min(settings.payoutCycleDays, Math.ceil((nextPayoutDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))));
 
   const originalDebt = settings.originalDebt || settings.currentDebt;
@@ -54,7 +64,7 @@ export function calculateAccountStats(settings: Settings, trades: Trade[]): Acco
     currentBalance,
     currentProfit: totalTradeProfit,
     profitRemainingUntilPayout,
-    tradingDaysCompleted: uniqueDays,
+    tradingDaysCompleted: validTradingDays,
     nextPayoutCountdownDays,
     currentDebt: settings.currentDebt,
     debtProgressPercent,
@@ -65,7 +75,7 @@ export function calculateAccountStats(settings: Settings, trades: Trade[]): Acco
     averageProfitPerWinningTrade,
     averageLossPerLosingTrade,
     profitFactor,
-    payoutEligible: totalTradeProfit >= settings.minimumProfitForPayout && uniqueDays >= settings.minimumTradingDays,
+    payoutEligible: totalTradeProfit >= settings.minimumProfitForPayout && validTradingDays >= settings.minimumTradingDays,
     lastCalculatedAt: new Date().toISOString(),
   };
 }
@@ -144,13 +154,6 @@ export function tradeDateKey(trade: Trade): string {
   return trade.date || trade.createdAt.slice(0, 10);
 }
 
-function toLocalDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 export interface TradeSummary {
   count: number;
   totalProfit: number;
@@ -178,7 +181,7 @@ export interface DashboardMetrics {
 
 export function getDashboardMetrics(trades: Trade[]): DashboardMetrics {
   const now = new Date();
-  const todayKey = toLocalDateKey(now);
+  const todayKey = localDateKey(now);
 
   const startOfWeek = new Date(now);
   const mondayOffset = (now.getDay() + 6) % 7;
@@ -196,11 +199,11 @@ export function getDashboardMetrics(trades: Trade[]): DashboardMetrics {
   const activeDays = new Set<string>();
 
   for (const trade of trades) {
-    const dateKey = tradeDateKey(trade);
+    const dateKey = trade.date || trade.createdAt.slice(0, 10);
     activeDays.add(dateKey);
     total += trade.profitLoss;
 
-    const tradeDate = new Date(`${dateKey}T00:00:00`);
+    const tradeDate = parseLocalDate(dateKey);
     if (dateKey === todayKey) todayProfit += trade.profitLoss;
     if (tradeDate >= startOfWeek) weekProfit += trade.profitLoss;
     if (tradeDate >= startOfMonth) monthProfit += trade.profitLoss;
@@ -268,7 +271,7 @@ export function getAnalytics(trades: Trade[]): Analytics {
     const monthKey = dateKey.slice(0, 7);
     monthlyMap.set(monthKey, (monthlyMap.get(monthKey) ?? 0) + trade.profitLoss);
 
-    const weekday = new Date(`${dateKey}T00:00:00`).getDay();
+    const weekday = parseLocalDate(dateKey).getDay();
     weekdayCounts[weekday] += 1;
 
     cumulative += trade.profitLoss;

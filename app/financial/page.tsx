@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useMemo, useState } from "react";
 import { AppButton, AppCard, AppInput, AppShell, FormField, HeroMetric, MetricTile, PageHeader, ProgressBar, SectionHeader } from "../components/ui-primitives";
-import { formatCurrency, formatPercent } from "../lib/tracker-data";
+import { formatUSD, formatINR, formatPercent } from "../lib/tracker-data";
 import { getFinancialSummary } from "../lib/tracker-calculations";
 import { recordSalaryContribution, useTrackerStore } from "../lib/tracker-store";
 import { Wallet, TrendingUp, ArrowRightLeft, Calendar, DollarSign } from "lucide-react";
@@ -39,6 +39,7 @@ export default function FinancialProgressPage() {
       <PageHeader
         title="Financial"
         subtitle="Debt payoff progress"
+        accent="violet"
         action={
           <AppButton type="button" variant="secondary" onClick={() => setShowSalaryForm((c) => !c)} className="text-xs">
             <DollarSign size={14} />
@@ -62,10 +63,10 @@ export default function FinancialProgressPage() {
       <section className="mt-4">
         <HeroMetric
           label="Remaining Debt"
-          value={formatCurrency(financialSummary.remainingDebt, 1)}
+          value={formatINR(financialSummary.remainingDebt)}
           accent="violet"
           icon={<Wallet size={20} />}
-          subtitle={`${financialSummary.debtCompletedPercent}% of ${formatCurrency(data.settings.originalDebt, 1)} cleared`}
+          subtitle={`${financialSummary.debtCompletedPercent}% of ${formatINR(data.settings.originalDebt)} cleared`}
         />
         <div className="mt-3">
           <ProgressBar value={financialSummary.debtCompletedPercent} barClassName="from-violet-500 to-violet-400" />
@@ -74,18 +75,18 @@ export default function FinancialProgressPage() {
 
       {/* Debt Metrics */}
       <section className="mt-4 grid grid-cols-2 gap-2.5">
-        <MetricTile label="Total Paid" value={formatCurrency(financialSummary.totalDebtPaid, 1)} accent="profit" icon={<TrendingUp size={14} />} />
-        <MetricTile label="Via Payouts" value={formatCurrency(financialSummary.totalPayoutDebtReduction, 1)} accent="cyan" icon={<ArrowRightLeft size={14} />} />
-        <MetricTile label="Via Salary" value={formatCurrency(financialSummary.totalSalaryContribution, 1)} accent="amber" icon={<DollarSign size={14} />} />
-        <MetricTile label="Total Contributed" value={formatCurrency(financialSummary.totalAmountPaidTowardsDebt, 1)} accent="violet" />
+        <MetricTile label="Total Paid" value={formatINR(financialSummary.totalDebtPaid)} accent="profit" icon={<TrendingUp size={14} />} />
+        <MetricTile label="Via Payouts" value={formatINR(financialSummary.totalPayoutDebtReduction)} accent="cyan" icon={<ArrowRightLeft size={14} />} />
+        <MetricTile label="Via Salary" value={formatINR(financialSummary.totalSalaryContribution)} accent="amber" icon={<DollarSign size={14} />} />
+        <MetricTile label="Total Contributed" value={formatINR(financialSummary.totalAmountPaidTowardsDebt)} accent="violet" />
       </section>
 
       {/* Income Breakdown */}
       <section className="mt-5">
         <SectionHeader title="Current Cycle Income" accent="emerald" icon={<TrendingUp size={13} />} />
         <div className="mt-2 grid grid-cols-2 gap-2.5">
-          <MetricTile label="Profit (USD)" value={`$${financialSummary.tradingProfitUsd.toFixed(2)}`} accent="profit" />
-          <MetricTile label="Profit (INR)" value={formatCurrency(financialSummary.tradingProfitInr, 1)} accent="profit" />
+          <MetricTile label="Profit (USD)" value={formatUSD(financialSummary.tradingProfitUsd)} accent="profit" />
+          <MetricTile label="Profit (INR)" value={formatINR(financialSummary.tradingProfitInr)} accent="profit" />
         </div>
       </section>
 
@@ -104,11 +105,11 @@ export default function FinancialProgressPage() {
             </div>
             <div className="rounded-lg bg-white/[0.03] p-3">
               <p className="text-[10px] text-slate-500">Avg Monthly Income</p>
-              <p className="mt-1 text-sm font-semibold text-emerald-400">{formatCurrency(financialSummary.averageMonthlyTradingIncome, data.settings.usdToInr)}</p>
+              <p className="mt-1 text-sm font-semibold text-emerald-400">{formatUSD(financialSummary.averageMonthlyTradingIncome)}</p>
             </div>
             <div className="rounded-lg bg-white/[0.03] p-3">
               <p className="text-[10px] text-slate-500">Avg Contribution</p>
-              <p className="mt-1 text-sm font-semibold text-violet-400">{formatCurrency(financialSummary.averageMonthlyTotalContribution, data.settings.usdToInr)}</p>
+              <p className="mt-1 text-sm font-semibold text-violet-400">{formatUSD(financialSummary.averageMonthlyTotalContribution)}</p>
             </div>
           </div>
         </AppCard>

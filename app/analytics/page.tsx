@@ -6,7 +6,7 @@ import { Activity, BarChart3, CalendarClock, Gauge, LineChart as LineChartIcon, 
 import { useMemo } from "react";
 import { AppCard, AppShell, EmptyState, HeroMetric, MetricTile, PageHeader, SectionHeader } from "../components/ui-primitives";
 import { BarChart, LineChart, RatioBar } from "../components/charts";
-import { formatCurrency, formatPercent } from "../lib/tracker-data";
+import { formatUSD, formatPercent } from "../lib/tracker-data";
 import { getAnalytics, getDashboardMetrics } from "../lib/tracker-calculations";
 import { useTrackerStore } from "../lib/tracker-store";
 
@@ -15,7 +15,6 @@ export default function AnalyticsPage() {
   const analytics = useMemo(() => getAnalytics(data.trades), [data.trades]);
   const metrics = useMemo(() => getDashboardMetrics(data.trades), [data.trades]);
   const stats = data.stats;
-  const usdToInr = data.settings.usdToInr;
 
   const monthlyBars = useMemo(
     () => analytics.profitByMonth.map((month) => ({ label: month.label, value: month.profit })),
@@ -35,7 +34,7 @@ export default function AnalyticsPage() {
 
   return (
     <AppShell activeTab="analytics">
-      <PageHeader title="Analytics" subtitle="Performance insights from your trades" />
+      <PageHeader title="Analytics" subtitle="Performance insights from your trades" accent="blue" />
 
       {data.trades.length === 0 ? (
         <div className="mt-4">
@@ -47,7 +46,7 @@ export default function AnalyticsPage() {
           <section className="mt-4">
             <HeroMetric
               label="Total Profit"
-              value={formatCurrency(totalProfit, usdToInr)}
+              value={formatUSD(totalProfit)}
               accent={totalProfit >= 0 ? "profit" : "loss"}
               icon={totalProfit >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
               subtitle={`${analytics.totalTrades} total trades`}
@@ -55,16 +54,16 @@ export default function AnalyticsPage() {
           </section>
 
           {/* Key Metrics Grid */}
-          <section className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+          <section className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
             <MetricTile label="Win Rate" value={formatPercent(stats.winRate)} accent="cyan" icon={<Target size={14} />} />
             <MetricTile label="Profit Factor" value={profitFactorLabel} accent="blue" icon={<Gauge size={14} />} />
-            <MetricTile label="Win / Loss" value={winLossRatioLabel} accent={analytics.winningCount > analytics.losingCount ? "profit" : "loss"} icon={<Ratio size={14} />} />
-            <MetricTile label="Avg R Multiple" value={averageRLabel} accent="cyan" icon={<Activity size={14} />} />
-            <MetricTile label="Avg Win" value={formatCurrency(stats.averageProfitPerWinningTrade, usdToInr)} accent="profit" icon={<TrendingUp size={14} />} />
-            <MetricTile label="Avg Loss" value={formatCurrency(-stats.averageLossPerLosingTrade, usdToInr)} accent="loss" icon={<TrendingDown size={14} />} />
-            <MetricTile label="Largest Win" value={formatCurrency(metrics.largestWin, usdToInr)} accent="profit" />
-            <MetricTile label="Largest Loss" value={formatCurrency(metrics.largestLoss, usdToInr)} accent="loss" />
-            <MetricTile label="Trades / Day" value={analytics.averageTradesPerActiveDay.toFixed(1)} accent="amber" icon={<CalendarClock size={14} />} />
+            <MetricTile label="Win/Loss" value={winLossRatioLabel} accent={analytics.winningCount > analytics.losingCount ? "profit" : "loss"} icon={<Ratio size={14} />} />
+            <MetricTile label="Avg R" value={averageRLabel} accent="cyan" icon={<Activity size={14} />} />
+            <MetricTile label="Avg Win" value={formatUSD(stats.averageProfitPerWinningTrade)} accent="profit" icon={<TrendingUp size={14} />} />
+            <MetricTile label="Avg Loss" value={formatUSD(-stats.averageLossPerLosingTrade)} accent="loss" icon={<TrendingDown size={14} />} />
+            <MetricTile label="Big Win" value={formatUSD(metrics.largestWin)} accent="profit" />
+            <MetricTile label="Big Loss" value={formatUSD(metrics.largestLoss)} accent="loss" />
+            <MetricTile label="Trades/Day" value={analytics.averageTradesPerActiveDay.toFixed(1)} accent="amber" icon={<CalendarClock size={14} />} />
           </section>
 
           {/* Streaks & Activity */}
@@ -78,9 +77,9 @@ export default function AnalyticsPage() {
           <section className="mt-5">
             <SectionHeader title="Period Performance" accent="emerald" icon={<BarChart3 size={13} />} />
             <div className="mt-2 grid grid-cols-3 gap-2.5">
-              <MetricTile label="Today" value={formatCurrency(metrics.todayProfit, usdToInr)} accent={metrics.todayProfit >= 0 ? "profit" : "loss"} />
-              <MetricTile label="This Week" value={formatCurrency(metrics.weekProfit, usdToInr)} accent={metrics.weekProfit >= 0 ? "profit" : "loss"} />
-              <MetricTile label="This Month" value={formatCurrency(metrics.monthProfit, usdToInr)} accent={metrics.monthProfit >= 0 ? "profit" : "loss"} />
+              <MetricTile label="Today" value={formatUSD(metrics.todayProfit)} accent={metrics.todayProfit >= 0 ? "profit" : "loss"} />
+              <MetricTile label="This Week" value={formatUSD(metrics.weekProfit)} accent={metrics.weekProfit >= 0 ? "profit" : "loss"} />
+              <MetricTile label="This Month" value={formatUSD(metrics.monthProfit)} accent={metrics.monthProfit >= 0 ? "profit" : "loss"} />
             </div>
           </section>
 
@@ -88,7 +87,7 @@ export default function AnalyticsPage() {
           <section className="mt-5">
             <SectionHeader title="Equity Curve" accent="cyan" icon={<LineChartIcon size={13} />} />
             <AppCard className="mt-2">
-              <LineChart values={equityValues} formatValue={(v) => formatCurrency(v, usdToInr)} color="cyan" />
+              <LineChart values={equityValues} formatValue={(v) => formatUSD(v)} color="cyan" />
             </AppCard>
           </section>
 
@@ -96,7 +95,7 @@ export default function AnalyticsPage() {
           <section className="mt-5">
             <SectionHeader title="Profit by Month" accent="emerald" icon={<BarChart3 size={13} />} />
             <AppCard className="mt-2">
-              <BarChart data={monthlyBars} diverging color="emerald" valueFormatter={(v) => formatCurrency(v, usdToInr)} />
+              <BarChart data={monthlyBars} diverging color="emerald" valueFormatter={(v) => formatUSD(v)} />
             </AppCard>
           </section>
 

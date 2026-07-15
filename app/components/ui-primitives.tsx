@@ -90,12 +90,24 @@ export function AppTextarea({ className = "", ...props }: React.TextareaHTMLAttr
   return <textarea className={`w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-slate-100 outline-none transition focus:border-cyan-500/30 focus:bg-white/[0.06] placeholder:text-slate-500 ${className}`} {...props} />;
 }
 
-export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
+export function PageHeader({ title, subtitle, action, accent = "cyan" }: { title: string; subtitle?: string; action?: ReactNode; accent?: "cyan" | "emerald" | "rose" | "violet" | "amber" | "blue" }) {
+  const accentColors: Record<string, string> = {
+    cyan: "from-cyan-400 to-cyan-500",
+    emerald: "from-emerald-400 to-emerald-500",
+    rose: "from-rose-400 to-rose-500",
+    violet: "from-violet-400 to-violet-500",
+    amber: "from-amber-400 to-amber-500",
+    blue: "from-indigo-400 to-indigo-500",
+  };
+
   return (
     <header className="flex items-start justify-between gap-4 pb-2">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">{title}</h1>
-        {subtitle ? <p className="mt-1 text-sm text-slate-400">{subtitle}</p> : null}
+        <div className="flex items-center gap-2">
+          <div className={`h-1 w-6 rounded-full bg-gradient-to-r ${accentColors[accent]}`} />
+          <h1 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">{title}</h1>
+        </div>
+        {subtitle ? <p className="mt-1 pl-8 text-sm text-slate-400">{subtitle}</p> : null}
       </div>
       {action ? <div className="flex-shrink-0">{action}</div> : null}
     </header>
@@ -254,12 +266,10 @@ type NavTab = {
 
 const navTabs: NavTab[] = [
   { id: "dashboard", label: "Home", icon: HomeIcon, href: "/" },
+  { id: "analytics", label: "Stats", icon: BarChart3, href: "/analytics" },
   { id: "add", label: "Add", icon: PlusCircle, href: "/add" },
   { id: "history", label: "History", icon: History, href: "/history" },
-  { id: "analytics", label: "Stats", icon: BarChart3, href: "/analytics" },
-  { id: "goals", label: "Goals", icon: Target, href: "/goals" },
-  { id: "financial", label: "Finance", icon: WalletCards, href: "/financial" },
-  { id: "settings", label: "Settings", icon: Settings, href: "/settings" },
+  { id: "settings", label: "More", icon: Settings, href: "/settings" },
 ];
 
 export function BottomNavigation({ activeTab }: { activeTab: TabId }) {
@@ -269,19 +279,6 @@ export function BottomNavigation({ activeTab }: { activeTab: TabId }) {
         {navTabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
-          const isAdd = tab.id === "add";
-
-          if (isAdd) {
-            return (
-              <Link
-                key={tab.id}
-                href={tab.href}
-                className="relative -mt-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-indigo-600 text-white shadow-[0_4px_20px_rgba(34,211,238,0.3)] transition active:scale-95"
-              >
-                <PlusCircle size={22} />
-              </Link>
-            );
-          }
 
           return (
             <Link

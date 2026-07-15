@@ -2,11 +2,11 @@
 
 export const dynamic = "force-dynamic";
 
-import { Search, Trash2, TrendingUp, TrendingDown } from "lucide-react";
+import { Search, Trash2, TrendingUp, TrendingDown, SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AppButton, AppCard, AppInput, AppSelect, AppShell, EmptyState, FormField, MetricTile, PageHeader, SectionHeader, SkeletonCard } from "../components/ui-primitives";
-import { formatCurrency, formatPercent, isValidDateInput } from "../lib/tracker-data";
+import { formatUSD, formatPercent, isValidDateInput } from "../lib/tracker-data";
 import { summarizeTrades, tradeDateKey } from "../lib/tracker-calculations";
 import { removeTrade, useTrackerStore } from "../lib/tracker-store";
 
@@ -26,6 +26,7 @@ export default function HistoryPage() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setIsReady(true), 120);
@@ -87,50 +88,63 @@ export default function HistoryPage() {
     <AppShell activeTab="history">
       {toast ? <div className="fixed right-4 top-4 z-50 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-2.5 text-sm text-cyan-300 shadow-lg backdrop-blur animate-fade-in">{toast}</div> : null}
 
-      <PageHeader title="Trade History" subtitle={`${data.trades.length} total trades`} />
+      <PageHeader title="Trade History" subtitle={`${data.trades.length} total trades`} accent="emerald" />
 
       {/* Summary */}
       <section className="mt-4 grid grid-cols-3 gap-2.5">
         <MetricTile label="Trades" value={String(summary.count)} accent="cyan" className="text-center" />
-        <MetricTile label="Profit" value={formatCurrency(summary.totalProfit, data.settings.usdToInr)} accent={summary.totalProfit >= 0 ? "profit" : "loss"} className="text-center" />
+        <MetricTile label="Profit" value={formatUSD(summary.totalProfit)} accent={summary.totalProfit >= 0 ? "profit" : "loss"} className="text-center" />
         <MetricTile label="Win Rate" value={formatPercent(summary.winRate)} accent="cyan" className="text-center" />
       </section>
 
       {/* Filters */}
       <section className="mt-4">
-        <SectionHeader title="Filters" accent="blue" />
-        <div className="mt-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <FormField label="Search">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
-                <AppInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Symbol..." className="pl-8 py-2 text-xs" />
+        <button
+          type="button"
+          onClick={() => setFiltersOpen((o) => !o)}
+          className="flex w-full items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 transition hover:bg-white/[0.04]"
+        >
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal size={13} className="text-indigo-400" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">Filters</span>
+            {hasActiveFilters && <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-500/20 px-1 text-[10px] font-bold text-indigo-300">!</span>}
+          </div>
+          {filtersOpen ? <ChevronUp size={14} className="text-slate-500" /> : <ChevronDown size={14} className="text-slate-500" />}
+        </button>
+        {filtersOpen ? (
+          <div className="mt-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <FormField label="Search">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+                  <AppInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Symbol..." className="pl-8 py-2 text-xs" />
+                </div>
+              </FormField>
+              <FormField label="Result">
+                <AppSelect value={resultFilter} onChange={(e) => setResultFilter(e.target.value as ResultFilter)} className="py-2 text-xs">
+                  <option value="all">All</option>
+                  <option value="wins">Wins</option>
+                  <option value="losses">Losses</option>
+                </AppSelect>
+              </FormField>
+              <FormField label="Sort">
+                <AppSelect value={sortOrder} onChange={(e) => setSortOrder(e.target.value as SortOrder)} className="py-2 text-xs">
+                  <option value="newest">Newest</option>
+                  <option value="oldest">Oldest</option>
+                </AppSelect>
+              </FormField>
+              <FormField label="From">
+                <AppInput type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="py-2 text-xs" />
+              </FormField>
+              <FormField label="To">
+                <AppInput type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="py-2 text-xs" />
+              </FormField>
+              <div className="flex items-end">
+                <AppButton type="button" variant="ghost" className="w-full text-xs" onClick={resetFilters} disabled={!hasActiveFilters}>Reset</AppButton>
               </div>
-            </FormField>
-            <FormField label="Result">
-              <AppSelect value={resultFilter} onChange={(e) => setResultFilter(e.target.value as ResultFilter)} className="py-2 text-xs">
-                <option value="all">All</option>
-                <option value="wins">Wins</option>
-                <option value="losses">Losses</option>
-              </AppSelect>
-            </FormField>
-            <FormField label="Sort">
-              <AppSelect value={sortOrder} onChange={(e) => setSortOrder(e.target.value as SortOrder)} className="py-2 text-xs">
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
-              </AppSelect>
-            </FormField>
-            <FormField label="From">
-              <AppInput type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="py-2 text-xs" />
-            </FormField>
-            <FormField label="To">
-              <AppInput type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="py-2 text-xs" />
-            </FormField>
-            <div className="flex items-end">
-              <AppButton type="button" variant="ghost" className="w-full text-xs" onClick={resetFilters} disabled={!hasActiveFilters}>Reset</AppButton>
             </div>
           </div>
-        </div>
+        ) : null}
       </section>
 
       {/* Trade List */}
@@ -169,7 +183,7 @@ export default function HistoryPage() {
                   {/* Amount */}
                   <div className="text-right flex-shrink-0">
                     <p className={`text-sm font-semibold tabular-nums ${isProfit ? "text-emerald-400" : "text-rose-400"}`}>
-                      {isProfit ? "+" : ""}{trade.profitLoss.toFixed(2)}
+                      {isProfit ? "+" : "-"}${Math.abs(trade.profitLoss).toFixed(2)}
                     </p>
                   </div>
 

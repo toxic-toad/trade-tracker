@@ -20,7 +20,7 @@ export default function AddTradePage() {
 
   return (
     <AppShell activeTab="add" maxWidth="max-w-3xl">
-      <PageHeader title="Add Trade" subtitle="Record a new trade" />
+      <PageHeader title="Add Trade" subtitle="Record a new trade" accent="emerald" />
 
       <div className="mt-4 animate-fade-in">
         <TradeForm onSaved={handleSaved} onCancel={() => router.push("/")} />

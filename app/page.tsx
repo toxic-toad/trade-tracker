@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { TrendingUp, TrendingDown, Calendar, Target, Flame, Zap, BarChart3, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { AppCard, AppLinkButton, AppShell, HeroMetric, MetricTile, PageHeader, ProgressBar, SectionHeader, SkeletonCard } from "./components/ui-primitives";
-import { formatCurrency, formatPercent } from "./lib/tracker-data";
+import { formatUSD, formatINR, formatPercent } from "./lib/tracker-data";
 import { getDashboardMetrics } from "./lib/tracker-calculations";
 import { useTrackerStore } from "./lib/tracker-store";
 
@@ -51,6 +51,7 @@ export default function Home() {
       <PageHeader
         title="Dashboard"
         subtitle={`Cycle ${data.settings.currentCycleNumber}`}
+        accent="cyan"
         action={<AppLinkButton href="/add" className="hidden sm:inline-flex" variant="primary"><Zap size={14} />Add Trade</AppLinkButton>}
       />
 
@@ -64,10 +65,10 @@ export default function Home() {
           <section className="mt-4">
             <HeroMetric
               label="Current Profit"
-              value={formatCurrency(stats.currentProfit, data.settings.usdToInr)}
+              value={formatUSD(stats.currentProfit)}
               accent={profitAccent}
               icon={stats.currentProfit >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
-              subtitle={`${profitProgress}% of ${formatCurrency(data.settings.minimumProfitForPayout, data.settings.usdToInr)} target`}
+              subtitle={`${profitProgress}% of ${formatUSD(data.settings.minimumProfitForPayout)} target`}
             />
             <div className="mt-3">
               <ProgressBar
@@ -81,7 +82,7 @@ export default function Home() {
           <section className="mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
             <MetricTile
               label="Best Day"
-              value={formatCurrency(metrics.largestWin, data.settings.usdToInr)}
+              value={formatUSD(metrics.largestWin)}
               accent="profit"
               icon={<TrendingUp size={14} />}
             />
@@ -119,7 +120,7 @@ export default function Home() {
                     <p className="mt-0.5 text-xs text-slate-400">All conditions met</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-semibold text-emerald-400">{formatCurrency(stats.currentProfit, data.settings.usdToInr)}</p>
+                    <p className="text-lg font-semibold text-emerald-400">{formatUSD(stats.currentProfit)}</p>
                     <p className="text-xs text-slate-500">Available</p>
                   </div>
                 </div>
@@ -144,7 +145,7 @@ export default function Home() {
                     {stats.profitRemainingUntilPayout > 0 ? (
                       <div className="flex items-center justify-between rounded-lg bg-white/[0.03] px-3 py-2">
                         <span className="text-xs text-slate-400">Profit remaining</span>
-                        <span className="text-xs font-medium text-amber-300">{formatCurrency(stats.profitRemainingUntilPayout, data.settings.usdToInr)}</span>
+                        <span className="text-xs font-medium text-amber-300">{formatUSD(stats.profitRemainingUntilPayout)}</span>
                       </div>
                     ) : null}
                     {stats.tradingDaysCompleted < data.settings.minimumTradingDays ? (
@@ -165,7 +166,7 @@ export default function Home() {
             <AppCard accent="violet" className="mt-2">
               <div className="flex items-baseline justify-between gap-3">
                 <div>
-                  <p className="text-2xl font-bold tracking-tight text-violet-400">{formatCurrency(data.settings.currentDebt, 1)}</p>
+                  <p className="text-2xl font-bold tracking-tight text-violet-400">{formatINR(data.settings.currentDebt)}</p>
                   <p className="mt-0.5 text-xs text-slate-400">Remaining debt</p>
                 </div>
                 <div className="text-right">
@@ -177,7 +178,7 @@ export default function Home() {
                 <ProgressBar value={stats.debtProgressPercent} barClassName="from-violet-500 to-violet-400" />
               </div>
               <div className="mt-3 flex justify-between text-xs text-slate-500">
-                <span>{formatCurrency(data.settings.originalDebt, 1)}</span>
+                <span>{formatINR(data.settings.originalDebt)}</span>
                 <span>₹0</span>
               </div>
             </AppCard>
@@ -187,20 +188,20 @@ export default function Home() {
           <section className="mt-5">
             <SectionHeader title="Performance" accent="blue" icon={<BarChart3 size={13} />} />
             <div className="mt-2 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-              <MetricTile label="Today" value={formatCurrency(metrics.todayProfit, data.settings.usdToInr)} accent={metrics.todayProfit >= 0 ? "profit" : "loss"} />
-              <MetricTile label="This Week" value={formatCurrency(metrics.weekProfit, data.settings.usdToInr)} accent={metrics.weekProfit >= 0 ? "profit" : "loss"} />
-              <MetricTile label="This Month" value={formatCurrency(metrics.monthProfit, data.settings.usdToInr)} accent={metrics.monthProfit >= 0 ? "profit" : "loss"} />
-              <MetricTile label="Avg Daily" value={formatCurrency(metrics.averageDailyProfit, data.settings.usdToInr)} accent="cyan" />
-              <MetricTile label="Largest Win" value={formatCurrency(metrics.largestWin, data.settings.usdToInr)} accent="profit" />
-              <MetricTile label="Largest Loss" value={formatCurrency(metrics.largestLoss, data.settings.usdToInr)} accent="loss" />
+              <MetricTile label="Today" value={formatUSD(metrics.todayProfit)} accent={metrics.todayProfit >= 0 ? "profit" : "loss"} />
+              <MetricTile label="This Week" value={formatUSD(metrics.weekProfit)} accent={metrics.weekProfit >= 0 ? "profit" : "loss"} />
+              <MetricTile label="This Month" value={formatUSD(metrics.monthProfit)} accent={metrics.monthProfit >= 0 ? "profit" : "loss"} />
+              <MetricTile label="Avg Daily" value={formatUSD(metrics.averageDailyProfit)} accent="cyan" />
+              <MetricTile label="Largest Win" value={formatUSD(metrics.largestWin)} accent="profit" />
+              <MetricTile label="Largest Loss" value={formatUSD(metrics.largestLoss)} accent="loss" />
             </div>
           </section>
 
           {/* Quick Stats */}
           <section className="mt-5 mb-4">
             <div className="grid grid-cols-3 gap-2.5">
-              <MetricTile label="Avg Win" value={formatCurrency(stats.averageProfitPerWinningTrade, data.settings.usdToInr)} accent="profit" className="text-center" />
-              <MetricTile label="Avg Loss" value={formatCurrency(-stats.averageLossPerLosingTrade, data.settings.usdToInr)} accent="loss" className="text-center" />
+              <MetricTile label="Avg Win" value={formatUSD(stats.averageProfitPerWinningTrade)} accent="profit" className="text-center" />
+              <MetricTile label="Avg Loss" value={formatUSD(-stats.averageLossPerLosingTrade)} accent="loss" className="text-center" />
               <MetricTile label="Best Streak" value={String(stats.bestWinStreak)} accent="amber" className="text-center" />
             </div>
           </section>

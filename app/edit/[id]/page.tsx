@@ -45,7 +45,7 @@ export default function EditTradePage() {
 
   return (
     <AppShell activeTab="history" maxWidth="max-w-3xl">
-      <PageHeader title="Edit Trade" subtitle={trade.symbol} />
+      <PageHeader title="Edit Trade" subtitle={trade.symbol} accent="emerald" />
 
       <div className="mt-4 animate-fade-in">
         <TradeForm trade={trade} onSaved={handleSaved} onDelete={handleDelete} onCancel={() => router.push("/history")} />

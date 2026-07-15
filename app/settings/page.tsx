@@ -7,9 +7,11 @@ import { AppButton, AppInput, AppSelect, AppShell, FormField, PageHeader } from 
 import { STORAGE_KEY, createDefaultData, isValidDateInput, readTrackerData, writeTrackerData } from "../lib/tracker-data";
 import type { Settings, TrackerData } from "../lib/tracker-models";
 import { setTrackerData, updateTrackerSettings, useTrackerStore } from "../lib/tracker-store";
-import { Target, TrendingUp, DollarSign, Calendar, Wallet, ArrowRightLeft, Percent, RotateCcw, Download, Upload, AlertTriangle, Info } from "lucide-react";
+import { Target, TrendingUp, DollarSign, Calendar, Wallet, ArrowRightLeft, Percent, RotateCcw, Download, Upload, AlertTriangle, Info, BarChart3 } from "lucide-react";
 
 const APP_VERSION = "1.0.0";
+
+type SettingsTab = "trading" | "account" | "data";
 
 function getStorageUsage() {
   if (typeof navigator === "undefined" || !navigator.storage?.estimate) return null;
@@ -22,6 +24,7 @@ export default function SettingsPage() {
   const [status, setStatus] = useState<string | null>(null);
   const [backupError, setBackupError] = useState<string | null>(null);
   const [savedToast, setSavedToast] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<SettingsTab>("trading");
 
   useEffect(() => {
     let isMounted = true;
@@ -91,107 +94,121 @@ export default function SettingsPage() {
     <AppShell activeTab="settings">
       {savedToast ? <div className="fixed right-4 top-4 z-50 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-300 shadow-lg backdrop-blur animate-fade-in">{savedToast}</div> : null}
 
-      <PageHeader title="Settings" subtitle="Manage your preferences" />
+      <PageHeader title="Settings" subtitle="Manage your preferences" accent="amber" />
+
+      {/* Tab Navigation */}
+      <div className="mt-4 flex gap-1 rounded-xl border border-white/[0.06] bg-white/[0.02] p-1">
+        {([
+          { id: "trading" as const, label: "Trading", icon: <Target size={13} /> },
+          { id: "account" as const, label: "Account", icon: <Wallet size={13} /> },
+          { id: "data" as const, label: "Data", icon: <Download size={13} /> },
+        ]).map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
+              activeTab === tab.id
+                ? "bg-white/[0.08] text-white shadow-sm"
+                : "text-slate-500 hover:text-slate-300"
+            }`}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
       {/* Trading Settings */}
-      <section className="mt-5">
-        <div className="flex items-center gap-2 pb-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-400"><Target size={12} /></div>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-cyan-400">Trading</h2>
-        </div>
-        <div className="space-y-1.5">
-          <SettingsRow icon={<TrendingUp size={14} />} label="Profit Target" value={`$${data.settings.minimumProfitForPayout}`}>
-            <NumberFieldInline value={data.settings.minimumProfitForPayout} onChange={(v) => updateSettings({ minimumProfitForPayout: v })} />
-          </SettingsRow>
-          <SettingsRow icon={<Percent size={14} />} label="Consistency Limit" value={`${data.settings.profitSplit}%`}>
-            <NumberFieldInline value={data.settings.profitSplit} min="0" max="100" onChange={(v) => updateSettings({ profitSplit: v })} />
-          </SettingsRow>
-          <SettingsRow icon={<DollarSign size={14} />} label="Account Size" value={`$${data.settings.accountSize}`}>
-            <NumberFieldInline value={data.settings.accountSize} onChange={(v) => updateSettings({ accountSize: v })} />
-          </SettingsRow>
-          <SettingsRow icon={<Calendar size={14} />} label="Min Trading Days" value={String(data.settings.minimumTradingDays)}>
-            <NumberFieldInline value={data.settings.minimumTradingDays} step="1" onChange={(v) => updateSettings({ minimumTradingDays: v })} />
-          </SettingsRow>
-          <SettingsRow icon={<Calendar size={14} />} label="Cycle Length" value={`${data.settings.payoutCycleDays} days`}>
-            <AppSelect value={data.settings.payoutCycleDays} onChange={(e) => updateSettings({ payoutCycleDays: Number(e.target.value) as 7 | 14 })} className="mt-1">
-              <option value={7}>7 days</option>
-              <option value={14}>14 days</option>
-            </AppSelect>
-          </SettingsRow>
-          <SettingsRow icon={<Calendar size={14} />} label="Cycle Start Date" value={data.settings.cycleStartDate}>
-            <AppInput type="date" value={data.settings.cycleStartDate} onChange={(e) => { if (isValidDateInput(e.target.value)) updateSettings({ cycleStartDate: e.target.value }); }} className="mt-1" />
-          </SettingsRow>
-          <SettingsRow icon={<Target size={14} />} label="Cycle Number" value={String(data.settings.currentCycleNumber)}>
-            <NumberFieldInline value={data.settings.currentCycleNumber} min="1" step="1" onChange={(v) => updateSettings({ currentCycleNumber: v })} />
-          </SettingsRow>
-        </div>
-      </section>
+      {activeTab === "trading" ? (
+        <section className="mt-4">
+          <div className="space-y-1.5">
+            <SettingsRow icon={<TrendingUp size={14} />} label="Profit Target" value={`$${data.settings.minimumProfitForPayout}`}>
+              <NumberFieldInline value={data.settings.minimumProfitForPayout} onChange={(v) => updateSettings({ minimumProfitForPayout: v })} />
+            </SettingsRow>
+            <SettingsRow icon={<Percent size={14} />} label="Profit Split" value={`${data.settings.profitSplit}%`}>
+              <NumberFieldInline value={data.settings.profitSplit} min="0" max="100" onChange={(v) => updateSettings({ profitSplit: v })} />
+            </SettingsRow>
+            <SettingsRow icon={<DollarSign size={14} />} label="Account Size" value={`$${data.settings.accountSize}`}>
+              <NumberFieldInline value={data.settings.accountSize} onChange={(v) => updateSettings({ accountSize: v })} />
+            </SettingsRow>
+            <SettingsRow icon={<Calendar size={14} />} label="Min Trading Days" value={String(data.settings.minimumTradingDays)}>
+              <NumberFieldInline value={data.settings.minimumTradingDays} step="1" onChange={(v) => updateSettings({ minimumTradingDays: v })} />
+            </SettingsRow>
+            <SettingsRow icon={<Calendar size={14} />} label="Cycle Length" value={`${data.settings.payoutCycleDays} days`}>
+              <AppSelect value={data.settings.payoutCycleDays} onChange={(e) => updateSettings({ payoutCycleDays: Number(e.target.value) as 7 | 14 })} className="mt-1">
+                <option value={7}>7 days</option>
+                <option value={14}>14 days</option>
+              </AppSelect>
+            </SettingsRow>
+            <SettingsRow icon={<Calendar size={14} />} label="Cycle Start Date" value={data.settings.cycleStartDate}>
+              <AppInput type="date" value={data.settings.cycleStartDate} onChange={(e) => { if (isValidDateInput(e.target.value)) updateSettings({ cycleStartDate: e.target.value }); }} className="mt-1" />
+            </SettingsRow>
+            <SettingsRow icon={<Target size={14} />} label="Cycle Number" value={String(data.settings.currentCycleNumber)}>
+              <NumberFieldInline value={data.settings.currentCycleNumber} min="1" step="1" onChange={(v) => updateSettings({ currentCycleNumber: v })} />
+            </SettingsRow>
+          </div>
+        </section>
+      ) : null}
 
       {/* Financial Settings */}
-      <section className="mt-6">
-        <div className="flex items-center gap-2 pb-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-400"><Wallet size={12} /></div>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-emerald-400">Financial</h2>
-        </div>
-        <div className="space-y-1.5">
-          <SettingsRow icon={<ArrowRightLeft size={14} />} label="USD / INR Rate" value={`₹${data.settings.usdToInr}`}>
-            <NumberFieldInline value={data.settings.usdToInr} onChange={(v) => updateSettings({ usdToInr: v })} />
-          </SettingsRow>
-          <SettingsRow icon={<Wallet size={14} />} label="Current Debt (INR)" value={`₹${data.settings.currentDebt.toLocaleString("en-IN")}`}>
-            <NumberFieldInline value={data.settings.currentDebt} onChange={(v) => updateSettings({ currentDebt: v })} />
-          </SettingsRow>
-          <SettingsRow icon={<Wallet size={14} />} label="Original Debt (INR)" value={`₹${data.settings.originalDebt.toLocaleString("en-IN")}`}>
-            <NumberFieldInline value={data.settings.originalDebt} onChange={(v) => updateSettings({ originalDebt: v })} />
-          </SettingsRow>
-          <SettingsRow icon={<DollarSign size={14} />} label="Monthly Salary (INR)" value={`₹${data.settings.monthlySalary.toLocaleString("en-IN")}`}>
-            <NumberFieldInline value={data.settings.monthlySalary} onChange={(v) => updateSettings({ monthlySalary: v })} />
-          </SettingsRow>
-          <SettingsRow icon={<DollarSign size={14} />} label="Monthly EMI (INR)" value={`₹${data.settings.monthlyEmi.toLocaleString("en-IN")}`}>
-            <NumberFieldInline value={data.settings.monthlyEmi} onChange={(v) => updateSettings({ monthlyEmi: v })} />
-          </SettingsRow>
-          <SettingsRow icon={<DollarSign size={14} />} label="Salary Contribution (INR)" value={`₹${data.settings.monthlySalaryContribution.toLocaleString("en-IN")}`}>
-            <NumberFieldInline value={data.settings.monthlySalaryContribution} onChange={(v) => updateSettings({ monthlySalaryContribution: v })} />
-          </SettingsRow>
-        </div>
-      </section>
-
-      {/* Data */}
-      <section className="mt-6">
-        <div className="flex items-center gap-2 pb-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-500/10 text-indigo-400"><Download size={12} /></div>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-indigo-400">Data</h2>
-        </div>
-        <div className="space-y-1.5">
-          <button type="button" onClick={handleExport} className="flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-3 text-left transition hover:bg-white/[0.05] active:scale-[0.99]">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400"><Download size={14} /></div>
-            <span className="flex-1 text-sm font-medium text-slate-200">Export Data</span>
-            <svg className="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-          </button>
-          <label className="flex w-full cursor-pointer items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-3 text-left transition hover:bg-white/[0.05] active:scale-[0.99]">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-500/10 text-violet-400"><Upload size={14} /></div>
-            <span className="flex-1 text-sm font-medium text-slate-200">Import Data</span>
-            <input type="file" accept="application/json" className="hidden" onChange={handleImport} />
-            <svg className="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-          </label>
-        </div>
-        {status ? <p className="mt-2 text-xs text-emerald-400">{status}</p> : null}
-        {backupError ? <p className="mt-2 text-xs text-rose-400">{backupError}</p> : null}
-      </section>
-
-      {/* Danger Zone */}
-      <section className="mt-6">
-        <div className="flex items-center gap-2 pb-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-rose-500/10 text-rose-400"><AlertTriangle size={12} /></div>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-rose-400">Danger Zone</h2>
-        </div>
-        <button type="button" onClick={handleReset} className="flex w-full items-center gap-3 rounded-xl border border-rose-500/15 bg-rose-500/[0.04] px-3 py-3 text-left transition hover:bg-rose-500/[0.08] active:scale-[0.99]">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-400"><RotateCcw size={14} /></div>
-          <div>
-            <span className="text-sm font-medium text-rose-300">Reset All Data</span>
-            <p className="text-xs text-rose-400/60">This action cannot be undone</p>
+      {activeTab === "account" ? (
+        <section className="mt-4">
+          <div className="space-y-1.5">
+            <SettingsRow icon={<ArrowRightLeft size={14} />} label="USD / INR Rate" value={`₹${data.settings.usdToInr}`}>
+              <NumberFieldInline value={data.settings.usdToInr} onChange={(v) => updateSettings({ usdToInr: v })} />
+            </SettingsRow>
+            <SettingsRow icon={<Wallet size={14} />} label="Current Debt (INR)" value={`₹${data.settings.currentDebt.toLocaleString("en-IN")}`}>
+              <NumberFieldInline value={data.settings.currentDebt} onChange={(v) => updateSettings({ currentDebt: v })} />
+            </SettingsRow>
+            <SettingsRow icon={<Wallet size={14} />} label="Original Debt (INR)" value={`₹${data.settings.originalDebt.toLocaleString("en-IN")}`}>
+              <NumberFieldInline value={data.settings.originalDebt} onChange={(v) => updateSettings({ originalDebt: v })} />
+            </SettingsRow>
+            <SettingsRow icon={<DollarSign size={14} />} label="Monthly Salary (INR)" value={`₹${data.settings.monthlySalary.toLocaleString("en-IN")}`}>
+              <NumberFieldInline value={data.settings.monthlySalary} onChange={(v) => updateSettings({ monthlySalary: v })} />
+            </SettingsRow>
+            <SettingsRow icon={<DollarSign size={14} />} label="Monthly EMI (INR)" value={`₹${data.settings.monthlyEmi.toLocaleString("en-IN")}`}>
+              <NumberFieldInline value={data.settings.monthlyEmi} onChange={(v) => updateSettings({ monthlyEmi: v })} />
+            </SettingsRow>
+            <SettingsRow icon={<DollarSign size={14} />} label="Salary Contribution (INR)" value={`₹${data.settings.monthlySalaryContribution.toLocaleString("en-IN")}`}>
+              <NumberFieldInline value={data.settings.monthlySalaryContribution} onChange={(v) => updateSettings({ monthlySalaryContribution: v })} />
+            </SettingsRow>
           </div>
-        </button>
-      </section>
+        </section>
+      ) : null}
+
+      {/* Data & Danger Zone */}
+      {activeTab === "data" ? (
+        <>
+          <section className="mt-4">
+            <div className="space-y-1.5">
+              <button type="button" onClick={handleExport} className="flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-3 text-left transition hover:bg-white/[0.05] active:scale-[0.99]">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400"><Download size={14} /></div>
+                <span className="flex-1 text-sm font-medium text-slate-200">Export Data</span>
+                <svg className="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+              </button>
+              <label className="flex w-full cursor-pointer items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-3 text-left transition hover:bg-white/[0.05] active:scale-[0.99]">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-500/10 text-violet-400"><Upload size={14} /></div>
+                <span className="flex-1 text-sm font-medium text-slate-200">Import Data</span>
+                <input type="file" accept="application/json" className="hidden" onChange={handleImport} />
+                <svg className="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+              </label>
+            </div>
+            {status ? <p className="mt-2 text-xs text-emerald-400">{status}</p> : null}
+            {backupError ? <p className="mt-2 text-xs text-rose-400">{backupError}</p> : null}
+          </section>
+
+          <section className="mt-6">
+            <button type="button" onClick={handleReset} className="flex w-full items-center gap-3 rounded-xl border border-rose-500/15 bg-rose-500/[0.04] px-3 py-3 text-left transition hover:bg-rose-500/[0.08] active:scale-[0.99]">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-400"><RotateCcw size={14} /></div>
+              <div>
+                <span className="text-sm font-medium text-rose-300">Reset All Data</span>
+                <p className="text-xs text-rose-400/60">This action cannot be undone</p>
+              </div>
+            </button>
+          </section>
+        </>
+      ) : null}
 
       {/* About */}
       <section className="mt-8 mb-4 text-center">

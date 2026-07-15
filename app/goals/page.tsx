@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { Activity, CheckCircle2, Target, Flame, Zap, TrendingUp, Award } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AppButton, AppCard, AppShell, HeroMetric, MetricTile, PageHeader, ProgressBar, SectionHeader } from "../components/ui-primitives";
-import { formatCurrency, formatPercent } from "../lib/tracker-data";
+import { formatUSD, formatINR, formatPercent } from "../lib/tracker-data";
 import { getGoalsSummary } from "../lib/tracker-calculations";
 import { processPayout, useTrackerStore } from "../lib/tracker-store";
 
@@ -23,7 +23,7 @@ export default function GoalsPage() {
   const debtAfter = Math.max(0, data.settings.currentDebt - payoutInr);
   const missingReasons = [
     stats.tradingDaysCompleted < data.settings.minimumTradingDays ? `Min days: ${stats.tradingDaysCompleted} / ${data.settings.minimumTradingDays}` : "",
-    stats.currentProfit < data.settings.minimumProfitForPayout ? `Profit: ${formatCurrency(stats.currentProfit, data.settings.usdToInr)} / ${formatCurrency(data.settings.minimumProfitForPayout, data.settings.usdToInr)}` : "",
+    stats.currentProfit < data.settings.minimumProfitForPayout ? `Profit: ${formatUSD(stats.currentProfit)} / ${formatUSD(data.settings.minimumProfitForPayout)}` : "",
   ].filter(Boolean);
 
   const confirmPayout = () => {
@@ -40,13 +40,13 @@ export default function GoalsPage() {
     <AppShell activeTab="goals">
       {toast ? <div className="fixed right-4 top-4 z-50 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-300 shadow-lg backdrop-blur animate-fade-in">{toast}</div> : null}
 
-      <PageHeader title="Goals" subtitle={`Cycle ${data.settings.currentCycleNumber}`} />
+      <PageHeader title="Goals" subtitle={`Cycle ${data.settings.currentCycleNumber}`} accent="violet" />
 
       {/* Payout Progress Hero */}
       <section className="mt-4">
         <HeroMetric
           label="Cycle Profit"
-          value={formatCurrency(stats.currentProfit, data.settings.usdToInr)}
+          value={formatUSD(stats.currentProfit)}
           accent={stats.payoutEligible ? "profit" : "cyan"}
           icon={stats.payoutEligible ? <Zap size={20} /> : <Target size={20} />}
           subtitle={`${goalsSummary.progressPercent}% of payout target`}
@@ -84,8 +84,8 @@ export default function GoalsPage() {
         <div className="mt-2 space-y-2">
           <GoalCard
             label="Profit Target"
-            current={formatCurrency(stats.currentProfit, data.settings.usdToInr)}
-            target={formatCurrency(data.settings.minimumProfitForPayout, data.settings.usdToInr)}
+            current={formatUSD(stats.currentProfit)}
+            target={formatUSD(data.settings.minimumProfitForPayout)}
             progress={goalsSummary.progressPercent}
             accent="emerald"
             icon={<TrendingUp size={14} />}
@@ -116,8 +116,8 @@ export default function GoalsPage() {
           <MetricTile label="Win Rate" value={formatPercent(stats.winRate)} accent="cyan" icon={<Target size={14} />} />
           <MetricTile label="Current Streak" value={String(stats.currentWinStreak)} accent="amber" icon={<Flame size={14} />} />
           <MetricTile label="Best Streak" value={String(stats.bestWinStreak)} accent="amber" icon={<Zap size={14} />} />
-          <MetricTile label="Avg Win" value={formatCurrency(stats.averageProfitPerWinningTrade, data.settings.usdToInr)} accent="profit" />
-          <MetricTile label="Avg Loss" value={formatCurrency(-stats.averageLossPerLosingTrade, data.settings.usdToInr)} accent="loss" />
+          <MetricTile label="Avg Win" value={formatUSD(stats.averageProfitPerWinningTrade)} accent="profit" />
+          <MetricTile label="Avg Loss" value={formatUSD(-stats.averageLossPerLosingTrade)} accent="loss" />
           <MetricTile label="Profit Factor" value={Number.isFinite(stats.profitFactor) ? stats.profitFactor.toFixed(2) : "Inf"} accent="blue" />
         </div>
       </section>
@@ -159,8 +159,8 @@ export default function GoalsPage() {
               <MiniStat label="Profit" value={`$${stats.currentProfit.toFixed(2)}`} />
               <MiniStat label="Split" value={`${data.settings.profitSplit}%`} />
               <MiniStat label="Payout" value={`$${payoutUsd.toFixed(2)}`} />
-              <MiniStat label="INR" value={formatCurrency(payoutInr, 1)} />
-              <MiniStat label="Debt After" value={formatCurrency(debtAfter, 1)} />
+              <MiniStat label="INR" value={formatINR(payoutInr)} />
+              <MiniStat label="Debt After" value={formatINR(debtAfter)} />
             </div>
             <div className="mt-5 flex flex-col gap-2 sm:flex-row">
               <AppButton type="button" className="flex-1" onClick={confirmPayout} variant="profit">Confirm Payout</AppButton>
