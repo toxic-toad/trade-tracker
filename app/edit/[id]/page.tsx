@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
-import { AppCard, AppShell, PageHeader } from "../../components/ui-primitives";
+import { AppShell, PageHeader } from "../../components/ui-primitives";
 import { TradeForm } from "../../components/trade-form";
 import { removeTrade, useTrackerStore } from "../../lib/tracker-store";
 
@@ -24,9 +24,7 @@ export default function EditTradePage() {
     }
   }, [router, trade]);
 
-  if (!trade) {
-    return null;
-  }
+  if (!trade) return null;
 
   const handleSaved = (message: string) => {
     if (typeof window !== "undefined") {
@@ -38,7 +36,6 @@ export default function EditTradePage() {
   const handleDelete = () => {
     const confirmed = window.confirm("Delete this trade? This cannot be undone.");
     if (!confirmed) return;
-
     removeTrade(trade.id);
     if (typeof window !== "undefined") {
       window.sessionStorage.setItem(TOAST_KEY, "Trade deleted.");
@@ -47,16 +44,12 @@ export default function EditTradePage() {
   };
 
   return (
-    <AppShell activeTab="history" maxWidth="max-w-5xl">
-        <PageHeader
-          eyebrow="Edit Trade"
-          title="Update trade details"
-          description="Changes sync instantly across your dashboard, history, and analytics."
-        />
+    <AppShell activeTab="history" maxWidth="max-w-3xl">
+      <PageHeader title="Edit Trade" subtitle={trade.symbol} />
 
-        <AppCard accent="emerald" className="mt-4 animate-[fadeIn_400ms_ease-out]">
-          <TradeForm trade={trade} onSaved={handleSaved} onDelete={handleDelete} onCancel={() => router.push("/history")} />
-        </AppCard>
+      <div className="mt-4 animate-fade-in">
+        <TradeForm trade={trade} onSaved={handleSaved} onDelete={handleDelete} onCancel={() => router.push("/history")} />
+      </div>
     </AppShell>
   );
 }

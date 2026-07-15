@@ -19,16 +19,12 @@ export default function AddTradePage() {
   };
 
   return (
-    <AppShell activeTab="add" maxWidth="max-w-5xl">
-        <PageHeader
-          eyebrow="Add Trade"
-          title="Record a new trade"
-          description="Save the trade, clear the form, and return to the dashboard automatically."
-        />
+    <AppShell activeTab="add" maxWidth="max-w-3xl">
+      <PageHeader title="Add Trade" subtitle="Record a new trade" />
 
-        <AppCard accent="cyan" className="mt-4 animate-[fadeIn_400ms_ease-out]">
-          <TradeForm onSaved={handleSaved} onCancel={() => router.push("/")} />
-        </AppCard>
+      <div className="mt-4 animate-fade-in">
+        <TradeForm onSaved={handleSaved} onCancel={() => router.push("/")} />
+      </div>
     </AppShell>
   );
 }

@@ -2,10 +2,10 @@
 
 export const dynamic = "force-dynamic";
 
-import { Search, Sparkles, Trash2 } from "lucide-react";
+import { Search, Trash2, TrendingUp, TrendingDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { AppButton, AppCard, AppInput, AppSelect, AppShell, EmptyState, FormField, PageHeader, SkeletonCard, StatCard } from "../components/ui-primitives";
+import { AppButton, AppCard, AppInput, AppSelect, AppShell, EmptyState, FormField, MetricTile, PageHeader, SectionHeader, SkeletonCard } from "../components/ui-primitives";
 import { formatCurrency, formatPercent, isValidDateInput } from "../lib/tracker-data";
 import { summarizeTrades, tradeDateKey } from "../lib/tracker-calculations";
 import { removeTrade, useTrackerStore } from "../lib/tracker-store";
@@ -34,7 +34,6 @@ export default function HistoryPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     const message = window.sessionStorage.getItem(TOAST_KEY);
     if (message) {
       setToast(message);
@@ -53,11 +52,9 @@ export default function HistoryPage() {
       if (query && !trade.symbol.toLowerCase().includes(query)) return false;
       if (resultFilter === "wins" && trade.profitLoss <= 0) return false;
       if (resultFilter === "losses" && trade.profitLoss >= 0) return false;
-
       const dateKey = tradeDateKey(trade);
       if (from && dateKey < from) return false;
       if (to && dateKey > to) return false;
-
       return true;
     });
 
@@ -73,7 +70,6 @@ export default function HistoryPage() {
   const deleteTrade = (tradeId: number) => {
     const confirmed = window.confirm("Delete this trade? This cannot be undone.");
     if (!confirmed) return;
-
     removeTrade(tradeId);
   };
 
@@ -89,108 +85,108 @@ export default function HistoryPage() {
 
   return (
     <AppShell activeTab="history">
-        {toast ? <div className="fixed right-4 top-4 z-50 rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-300 shadow-lg backdrop-blur">{toast}</div> : null}
+      {toast ? <div className="fixed right-4 top-4 z-50 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-2.5 text-sm text-cyan-300 shadow-lg backdrop-blur animate-fade-in">{toast}</div> : null}
 
-        <PageHeader eyebrow="History" title="Your private trade log" description="Search, filter, and review every trade." />
+      <PageHeader title="Trade History" subtitle={`${data.trades.length} total trades`} />
 
-        <section className="mt-4 grid gap-3 sm:grid-cols-3">
-          <StatCard label="Filtered trades" value={String(summary.count)} icon={<Sparkles size={16} />} />
-          <StatCard label="Filtered profit" value={formatCurrency(summary.totalProfit, data.settings.usdToInr)} valueClassName={summary.totalProfit >= 0 ? "text-emerald-300" : "text-rose-300"} icon={<Sparkles size={16} />} />
-          <StatCard label="Filtered win rate" value={formatPercent(summary.winRate)} subtitle={`${summary.winningCount}W / ${summary.losingCount}L`} icon={<Sparkles size={16} />} />
-        </section>
+      {/* Summary */}
+      <section className="mt-4 grid grid-cols-3 gap-2.5">
+        <MetricTile label="Trades" value={String(summary.count)} accent="cyan" className="text-center" />
+        <MetricTile label="Profit" value={formatCurrency(summary.totalProfit, data.settings.usdToInr)} accent={summary.totalProfit >= 0 ? "profit" : "loss"} className="text-center" />
+        <MetricTile label="Win Rate" value={formatPercent(summary.winRate)} accent="cyan" className="text-center" />
+      </section>
 
-        <AppCard accent="default" className="mt-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <FormField label="Search symbol">
+      {/* Filters */}
+      <section className="mt-4">
+        <SectionHeader title="Filters" accent="blue" />
+        <div className="mt-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <FormField label="Search">
               <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
-                <AppInput value={search} onChange={(event) => setSearch(event.target.value)} placeholder="e.g. XAUUSD" className="pl-10" />
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+                <AppInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Symbol..." className="pl-8 py-2 text-xs" />
               </div>
             </FormField>
-
             <FormField label="Result">
-              <AppSelect value={resultFilter} onChange={(event) => setResultFilter(event.target.value as ResultFilter)}>
-                <option value="all">All trades</option>
-                <option value="wins">Winning trades</option>
-                <option value="losses">Losing trades</option>
+              <AppSelect value={resultFilter} onChange={(e) => setResultFilter(e.target.value as ResultFilter)} className="py-2 text-xs">
+                <option value="all">All</option>
+                <option value="wins">Wins</option>
+                <option value="losses">Losses</option>
               </AppSelect>
             </FormField>
-
             <FormField label="Sort">
-              <AppSelect value={sortOrder} onChange={(event) => setSortOrder(event.target.value as SortOrder)}>
-                <option value="newest">Newest first</option>
-                <option value="oldest">Oldest first</option>
+              <AppSelect value={sortOrder} onChange={(e) => setSortOrder(e.target.value as SortOrder)} className="py-2 text-xs">
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
               </AppSelect>
             </FormField>
-
-            <FormField label="From date">
-              <AppInput type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} />
+            <FormField label="From">
+              <AppInput type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="py-2 text-xs" />
             </FormField>
-
-            <FormField label="To date">
-              <AppInput type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} />
+            <FormField label="To">
+              <AppInput type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="py-2 text-xs" />
             </FormField>
-
             <div className="flex items-end">
-              <AppButton type="button" variant="secondary" className="w-full" onClick={resetFilters} disabled={!hasActiveFilters}>
-                Reset filters
-              </AppButton>
+              <AppButton type="button" variant="ghost" className="w-full text-xs" onClick={resetFilters} disabled={!hasActiveFilters}>Reset</AppButton>
             </div>
           </div>
-        </AppCard>
+        </div>
+      </section>
 
-        <section className="mt-4">
-          {!isReady ? (
-            <div className="grid gap-3">
-              <SkeletonCard className="h-24" />
-              <SkeletonCard className="h-24" />
-            </div>
-          ) : data.trades.length === 0 ? (
-            <EmptyState title="No trades yet" description="Start building your history with your first trade." action={<AppButton variant="primary" onClick={() => router.push("/add")}>Add your first trade</AppButton>} />
-          ) : filteredTrades.length === 0 ? (
-            <EmptyState title="No matching trades" description="Try adjusting your search or filters to see more results." action={<AppButton variant="secondary" onClick={resetFilters}>Reset filters</AppButton>} />
-          ) : (
-            <div className="space-y-3">
-              {filteredTrades.map((trade, index) => {
-                const isProfit = trade.profitLoss >= 0;
-                return (
-                  <AppCard key={trade.id} accent="default" className="cursor-pointer animate-[fadeIn_400ms_ease-out]" interactive onClick={() => router.push(`/edit/${trade.id}`)}>
-                    <div className="flex items-start justify-between gap-3" style={{ animationDelay: `${index * 60}ms` }}>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-white">{trade.symbol}</p>
-                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${isProfit ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"}`}>{isProfit ? "Profit" : "Loss"}</span>
-                          {trade.strategy ? <span className="rounded-full bg-cyan-500/10 px-2.5 py-1 text-xs font-medium text-cyan-300">{trade.strategy}</span> : null}
-                        </div>
-                        <p className="mt-1 text-sm text-slate-400">{trade.date || new Date(trade.createdAt).toLocaleDateString()}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className={`text-lg font-semibold ${isProfit ? "text-emerald-300" : "text-rose-300"}`}>{isProfit ? "+" : ""}{trade.profitLoss.toFixed(2)}</p>
-                        {trade.lotSize ? <p className="mt-1 text-xs text-slate-500">Lot size {trade.lotSize}</p> : null}
-                      </div>
+      {/* Trade List */}
+      <section className="mt-4 mb-4">
+        {!isReady ? (
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} className="h-20" />)}
+          </div>
+        ) : data.trades.length === 0 ? (
+          <EmptyState title="No trades yet" description="Start building your history with your first trade." action={<AppButton variant="primary" onClick={() => router.push("/add")}>Add your first trade</AppButton>} />
+        ) : filteredTrades.length === 0 ? (
+          <EmptyState title="No matching trades" description="Try adjusting your search or filters." action={<AppButton variant="secondary" onClick={resetFilters}>Reset filters</AppButton>} />
+        ) : (
+          <div className="space-y-1">
+            {filteredTrades.map((trade) => {
+              const isProfit = trade.profitLoss >= 0;
+              const dateStr = trade.date || new Date(trade.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+              return (
+                <div
+                  key={trade.id}
+                  className="group flex items-center gap-3 rounded-xl border border-white/[0.04] bg-white/[0.01] px-3 py-2.5 transition hover:bg-white/[0.04] cursor-pointer active:scale-[0.99]"
+                  onClick={() => router.push(`/edit/${trade.id}`)}
+                >
+                  {/* Indicator */}
+                  <div className={`h-2 w-2 flex-shrink-0 rounded-full ${isProfit ? "bg-emerald-400" : "bg-rose-400"}`} />
+
+                  {/* Info */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-white truncate">{trade.symbol}</p>
+                      {trade.strategy ? <span className="text-[10px] text-slate-500 hidden sm:inline">{trade.strategy}</span> : null}
                     </div>
+                    <p className="text-[11px] text-slate-500">{dateStr} {trade.cycleNumber ? `\u00B7 Cycle ${trade.cycleNumber}` : ""}</p>
+                  </div>
 
-                    {trade.emotion || trade.notes || trade.mistake ? (
-                      <div className="mt-3 space-y-1 rounded-2xl border border-slate-800/80 bg-slate-950/50 p-3 text-sm text-slate-400">
-                        {trade.emotion ? <p><span className="text-slate-500">Emotion:</span> {trade.emotion}</p> : null}
-                        {trade.notes ? <p><span className="text-slate-500">Notes:</span> {trade.notes}</p> : null}
-                        {trade.mistake ? <p><span className="text-slate-500">Mistake:</span> {trade.mistake}</p> : null}
-                      </div>
-                    ) : null}
+                  {/* Amount */}
+                  <div className="text-right flex-shrink-0">
+                    <p className={`text-sm font-semibold tabular-nums ${isProfit ? "text-emerald-400" : "text-rose-400"}`}>
+                      {isProfit ? "+" : ""}{trade.profitLoss.toFixed(2)}
+                    </p>
+                  </div>
 
-                    <div className="mt-4 flex items-center justify-between gap-3">
-                      <p className="text-sm text-slate-400">Tap to edit</p>
-                      <AppButton type="button" variant="danger" onClick={(event) => { event.stopPropagation(); deleteTrade(trade.id); }} className="px-3 py-2">
-                        <Trash2 size={14} />
-                        Delete
-                      </AppButton>
-                    </div>
-                  </AppCard>
-                );
-              })}
-            </div>
-          )}
-        </section>
+                  {/* Delete */}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); deleteTrade(trade.id); }}
+                    className="flex-shrink-0 rounded-lg p-1.5 text-slate-600 opacity-0 transition hover:bg-rose-500/10 hover:text-rose-400 group-hover:opacity-100"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </AppShell>
   );
 }

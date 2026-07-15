@@ -3,10 +3,11 @@
 export const dynamic = "force-dynamic";
 
 import { useMemo, useState } from "react";
-import { AppButton, AppCard, AppInput, AppShell, FormField, PageHeader, ProgressBar, StatCard } from "../components/ui-primitives";
+import { AppButton, AppCard, AppInput, AppShell, FormField, HeroMetric, MetricTile, PageHeader, ProgressBar, SectionHeader } from "../components/ui-primitives";
 import { formatCurrency, formatPercent } from "../lib/tracker-data";
 import { getFinancialSummary } from "../lib/tracker-calculations";
 import { recordSalaryContribution, useTrackerStore } from "../lib/tracker-store";
+import { Wallet, TrendingUp, ArrowRightLeft, Calendar, DollarSign } from "lucide-react";
 
 export default function FinancialProgressPage() {
   const data = useTrackerStore();
@@ -33,111 +34,101 @@ export default function FinancialProgressPage() {
 
   return (
     <AppShell activeTab="financial">
-      {toast ? <div className="fixed right-4 top-4 z-50 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300 shadow-lg backdrop-blur">{toast}</div> : null}
+      {toast ? <div className="fixed right-4 top-4 z-50 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-300 shadow-lg backdrop-blur animate-fade-in">{toast}</div> : null}
+
       <PageHeader
-        eyebrow="Financial"
-        title="Track debt payoff momentum"
-        description="Debt only decreases after a confirmed payout or an explicit salary contribution."
-        action={<AppButton type="button" variant="secondary" onClick={() => setShowSalaryForm((current) => !current)}>Record Salary Contribution</AppButton>}
+        title="Financial"
+        subtitle="Debt payoff progress"
+        action={
+          <AppButton type="button" variant="secondary" onClick={() => setShowSalaryForm((c) => !c)} className="text-xs">
+            <DollarSign size={14} />
+            Salary
+          </AppButton>
+        }
       />
 
+      {/* Salary Form */}
       {showSalaryForm ? (
-        <AppCard accent="emerald" className="mt-4">
-          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-            <FormField label="Salary contribution amount (INR)">
-              <AppInput type="number" min="0" step="0.01" value={salaryAmount} onChange={(event) => setSalaryAmount(event.target.value)} />
-            </FormField>
-            <AppButton type="button" onClick={submitSalaryContribution}>Apply Contribution</AppButton>
+        <div className="mt-4 rounded-xl border border-emerald-500/15 bg-emerald-500/[0.04] p-3.5">
+          <p className="text-xs font-medium text-emerald-400 mb-2">Record Salary Contribution (INR)</p>
+          <div className="flex gap-2">
+            <AppInput type="number" min="0" step="0.01" value={salaryAmount} onChange={(e) => setSalaryAmount(e.target.value)} className="flex-1" />
+            <AppButton type="button" onClick={submitSalaryContribution} variant="profit" className="flex-shrink-0">Apply</AppButton>
           </div>
-        </AppCard>
+        </div>
       ) : null}
 
-      <AppCard accent="cyan" className="mt-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium text-slate-300">Debt Overview</p>
-            <h2 className="mt-1 text-xl font-semibold text-white">Your confirmed debt payoff progress</h2>
-          </div>
-          <span className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-sm text-cyan-300">
-            {financialSummary.debtCompletedPercent}% completed
-          </span>
+      {/* Debt Overview Hero */}
+      <section className="mt-4">
+        <HeroMetric
+          label="Remaining Debt"
+          value={formatCurrency(financialSummary.remainingDebt, 1)}
+          accent="violet"
+          icon={<Wallet size={20} />}
+          subtitle={`${financialSummary.debtCompletedPercent}% of ${formatCurrency(data.settings.originalDebt, 1)} cleared`}
+        />
+        <div className="mt-3">
+          <ProgressBar value={financialSummary.debtCompletedPercent} barClassName="from-violet-500 to-violet-400" />
         </div>
+      </section>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="Total Debt Paid" value={formatCurrency(financialSummary.totalDebtPaid, 1)} valueClassName="text-emerald-300" />
-          <StatCard label="Remaining Debt" value={formatCurrency(financialSummary.remainingDebt, 1)} />
-          <StatCard label="Percentage Completed" value={formatPercent(financialSummary.debtCompletedPercent)} />
-          <StatCard label="Payout Debt Reduction" value={formatCurrency(financialSummary.totalPayoutDebtReduction, 1)} valueClassName="text-emerald-300" />
+      {/* Debt Metrics */}
+      <section className="mt-4 grid grid-cols-2 gap-2.5">
+        <MetricTile label="Total Paid" value={formatCurrency(financialSummary.totalDebtPaid, 1)} accent="profit" icon={<TrendingUp size={14} />} />
+        <MetricTile label="Via Payouts" value={formatCurrency(financialSummary.totalPayoutDebtReduction, 1)} accent="cyan" icon={<ArrowRightLeft size={14} />} />
+        <MetricTile label="Via Salary" value={formatCurrency(financialSummary.totalSalaryContribution, 1)} accent="amber" icon={<DollarSign size={14} />} />
+        <MetricTile label="Total Contributed" value={formatCurrency(financialSummary.totalAmountPaidTowardsDebt, 1)} accent="violet" />
+      </section>
+
+      {/* Income Breakdown */}
+      <section className="mt-5">
+        <SectionHeader title="Current Cycle Income" accent="emerald" icon={<TrendingUp size={13} />} />
+        <div className="mt-2 grid grid-cols-2 gap-2.5">
+          <MetricTile label="Profit (USD)" value={`$${financialSummary.tradingProfitUsd.toFixed(2)}`} accent="profit" />
+          <MetricTile label="Profit (INR)" value={formatCurrency(financialSummary.tradingProfitInr, 1)} accent="profit" />
         </div>
+      </section>
 
-        <div className="mt-4">
-          <div className="mb-2 flex justify-between text-sm text-slate-400">
-            <span>Debt reduction</span>
-            <span>{financialSummary.debtCompletedPercent}%</span>
-          </div>
-          <ProgressBar value={financialSummary.debtCompletedPercent} />
-        </div>
-      </AppCard>
-
-      <section className="mt-4 grid gap-4 lg:grid-cols-2">
-        <AppCard accent="default">
-          <h2 className="text-xl font-semibold text-white">Income Breakdown</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <StatCard label="Current Cycle Profit (USD)" value={`$${financialSummary.tradingProfitUsd.toFixed(2)}`} />
-            <StatCard label="Current Cycle Profit (INR)" value={formatCurrency(financialSummary.tradingProfitInr, 1)} />
-            <StatCard label="Salary Contributions" value={formatCurrency(financialSummary.totalSalaryContribution, 1)} />
-            <StatCard label="Total Amount Paid" value={formatCurrency(financialSummary.totalAmountPaidTowardsDebt, 1)} />
-          </div>
-        </AppCard>
-
-        <AppCard accent="default">
-          <h2 className="text-xl font-semibold text-white">Forecast</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <StatCard label="Estimated Debt-Free Date" value={estimatedDebtFreeDate} />
-            <StatCard label="Avg Monthly Trading Income" value={formatCurrency(financialSummary.averageMonthlyTradingIncome, data.settings.usdToInr)} />
-            <StatCard label="Avg Monthly Contribution" value={formatCurrency(financialSummary.averageMonthlyTotalContribution, data.settings.usdToInr)} />
-            <StatCard label="Months Remaining" value={String(financialSummary.monthsRemaining)} />
+      {/* Forecast */}
+      <section className="mt-5">
+        <SectionHeader title="Forecast" accent="amber" icon={<Calendar size={13} />} />
+        <AppCard className="mt-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-lg bg-white/[0.03] p-3">
+              <p className="text-[10px] text-slate-500">Debt-Free Date</p>
+              <p className="mt-1 text-lg font-bold text-amber-400">{estimatedDebtFreeDate}</p>
+            </div>
+            <div className="rounded-lg bg-white/[0.03] p-3">
+              <p className="text-[10px] text-slate-500">Months Left</p>
+              <p className="mt-1 text-lg font-bold text-white">{financialSummary.monthsRemaining}</p>
+            </div>
+            <div className="rounded-lg bg-white/[0.03] p-3">
+              <p className="text-[10px] text-slate-500">Avg Monthly Income</p>
+              <p className="mt-1 text-sm font-semibold text-emerald-400">{formatCurrency(financialSummary.averageMonthlyTradingIncome, data.settings.usdToInr)}</p>
+            </div>
+            <div className="rounded-lg bg-white/[0.03] p-3">
+              <p className="text-[10px] text-slate-500">Avg Contribution</p>
+              <p className="mt-1 text-sm font-semibold text-violet-400">{formatCurrency(financialSummary.averageMonthlyTotalContribution, data.settings.usdToInr)}</p>
+            </div>
           </div>
         </AppCard>
       </section>
 
-      <AppCard accent="default" className="mt-4">
-        <h2 className="text-xl font-semibold text-white">Payout History</h2>
-        {data.payouts.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-400">Confirmed payouts will appear here.</p>
-        ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="text-slate-400">
-                <tr>
-                  <th className="pb-3 font-medium">Date</th>
-                  <th className="pb-3 font-medium">Cycle</th>
-                  <th className="pb-3 font-medium">Trading Profit</th>
-                  <th className="pb-3 font-medium">Split</th>
-                  <th className="pb-3 font-medium">Payout USD</th>
-                  <th className="pb-3 font-medium">Payout INR</th>
-                  <th className="pb-3 font-medium">Debt Before</th>
-                  <th className="pb-3 font-medium">Debt After</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/80">
-                {data.payouts.map((payout) => (
-                  <tr key={payout.id} className="text-slate-200">
-                    <td className="py-3">{payout.date}</td>
-                    <td className="py-3">{payout.cycleNumber}</td>
-                    <td className="py-3">{formatCurrency(payout.tradingProfitInr, 1)}</td>
-                    <td className="py-3">{payout.profitSplitPercent}%</td>
-                    <td className="py-3">${payout.payoutUsd.toFixed(2)}</td>
-                    <td className="py-3">{formatCurrency(payout.payoutInr, 1)}</td>
-                    <td className="py-3">{formatCurrency(payout.debtBefore, 1)}</td>
-                    <td className="py-3">{formatCurrency(payout.debtAfter, 1)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* USD/INR Rate */}
+      <section className="mt-5 mb-4">
+        <AppCard>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400"><ArrowRightLeft size={14} /></div>
+              <div>
+                <p className="text-xs text-slate-500">USD / INR</p>
+                <p className="text-sm font-semibold text-white">₹{data.settings.usdToInr}</p>
+              </div>
+            </div>
+            <span className="text-[10px] text-slate-600">Manual rate</span>
           </div>
-        )}
-      </AppCard>
+        </AppCard>
+      </section>
     </AppShell>
   );
 }

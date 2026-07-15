@@ -1,18 +1,17 @@
+import Link from "next/link";
+
 export default function NotFound() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-black text-white">
+    <main className="min-h-screen flex items-center justify-center" style={{ background: "#050810" }}>
       <div className="text-center">
-        <h1 className="text-5xl font-bold mb-4">404</h1>
-        <p className="text-gray-400 mb-6">
-          The page you are looking for doesn't exist.
-        </p>
-
-        <a
+        <h1 className="text-6xl font-bold text-white mb-2">404</h1>
+        <p className="text-slate-400 mb-6 text-sm">Page not found</p>
+        <Link
           href="/"
-          className="px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-600 transition"
+          className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 px-5 py-2.5 text-sm font-medium text-white shadow-[0_2px_12px_rgba(34,211,238,0.25)] transition hover:from-cyan-400 hover:to-cyan-500 active:scale-[0.97]"
         >
           Go to Dashboard
-        </a>
+        </Link>
       </div>
     </main>
   );

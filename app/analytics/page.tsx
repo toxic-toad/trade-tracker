@@ -2,9 +2,9 @@
 
 export const dynamic = "force-dynamic";
 
-import { Activity, BarChart3, CalendarClock, Gauge, LineChart as LineChartIcon, Ratio } from "lucide-react";
+import { Activity, BarChart3, CalendarClock, Gauge, LineChart as LineChartIcon, Ratio, TrendingUp, TrendingDown, Zap, Flame } from "lucide-react";
 import { useMemo } from "react";
-import { AppCard, AppShell, EmptyState, PageHeader, StatCard } from "../components/ui-primitives";
+import { AppCard, AppShell, EmptyState, HeroMetric, MetricTile, PageHeader, SectionHeader } from "../components/ui-primitives";
 import { BarChart, LineChart, RatioBar } from "../components/charts";
 import { formatCurrency, formatPercent } from "../lib/tracker-data";
 import { getAnalytics, getDashboardMetrics } from "../lib/tracker-calculations";
@@ -31,84 +31,100 @@ export default function AnalyticsPage() {
   const profitFactorLabel = Number.isFinite(analytics.profitFactor) ? analytics.profitFactor.toFixed(2) : "Infinity";
   const averageRLabel = analytics.averageRMultiple === null ? "N/A" : `${analytics.averageRMultiple.toFixed(2)}R`;
 
+  const totalProfit = equityValues.length > 0 ? equityValues[equityValues.length - 1] : 0;
+
   return (
     <AppShell activeTab="analytics">
-        <PageHeader
-          eyebrow="Analytics"
-          title="Understand your trading edge"
-          description="Every chart is calculated from your saved trades with the shared metrics engine."
-        />
+      <PageHeader title="Analytics" subtitle="Performance insights from your trades" />
 
-        {data.trades.length === 0 ? (
-          <div className="mt-4">
-            <EmptyState title="No analytics yet" description="Add trades to unlock profit, equity, and frequency insights." />
-          </div>
-        ) : (
-          <>
-            <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <StatCard label="Profit factor" value={profitFactorLabel} icon={<Gauge size={16} />} />
-              <StatCard label="Win Rate" value={formatPercent(stats.winRate)} icon={<Gauge size={16} />} />
-              <StatCard label="Win / Loss ratio" value={winLossRatioLabel} subtitle={`${analytics.winningCount}W / ${analytics.losingCount}L`} icon={<Ratio size={16} />} />
-              <StatCard label="Average R multiple" value={averageRLabel} subtitle={analytics.rTradeCount > 0 ? `From ${analytics.rTradeCount} trades` : "Add risk amount to enable"} icon={<Activity size={16} />} />
-              <StatCard label="Trades / active day" value={analytics.averageTradesPerActiveDay.toFixed(2)} subtitle={`${analytics.activeDays} active days`} icon={<CalendarClock size={16} />} />
-              <StatCard label="Average Win" value={formatCurrency(stats.averageProfitPerWinningTrade, usdToInr)} valueClassName="text-emerald-300" icon={<Activity size={16} />} />
-              <StatCard label="Average Loss" value={formatCurrency(-stats.averageLossPerLosingTrade, usdToInr)} valueClassName="text-rose-300" icon={<Activity size={16} />} />
-              <StatCard label="Largest Win" value={formatCurrency(metrics.largestWin, usdToInr)} valueClassName="text-emerald-300" icon={<Activity size={16} />} />
-              <StatCard label="Largest Loss" value={formatCurrency(metrics.largestLoss, usdToInr)} valueClassName="text-rose-300" icon={<Activity size={16} />} />
-              <StatCard label="Current Streak" value={String(stats.currentWinStreak)} icon={<Activity size={16} />} />
-              <StatCard label="Best Streak" value={String(stats.bestWinStreak)} icon={<Activity size={16} />} />
-              <StatCard label="Today's Profit" value={formatCurrency(metrics.todayProfit, usdToInr)} valueClassName={metrics.todayProfit >= 0 ? "text-emerald-300" : "text-rose-300"} icon={<Activity size={16} />} />
-              <StatCard label="Week" value={formatCurrency(metrics.weekProfit, usdToInr)} valueClassName={metrics.weekProfit >= 0 ? "text-emerald-300" : "text-rose-300"} icon={<Activity size={16} />} />
-              <StatCard label="Month" value={formatCurrency(metrics.monthProfit, usdToInr)} valueClassName={metrics.monthProfit >= 0 ? "text-emerald-300" : "text-rose-300"} icon={<Activity size={16} />} />
-            </section>
+      {data.trades.length === 0 ? (
+        <div className="mt-4">
+          <EmptyState title="No analytics yet" description="Add trades to unlock profit, equity, and frequency insights." />
+        </div>
+      ) : (
+        <>
+          {/* Hero Metric */}
+          <section className="mt-4">
+            <HeroMetric
+              label="Total Profit"
+              value={formatCurrency(totalProfit, usdToInr)}
+              accent={totalProfit >= 0 ? "profit" : "loss"}
+              icon={totalProfit >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+              subtitle={`${analytics.totalTrades} total trades`}
+            />
+          </section>
 
-            <AppCard accent="default" className="mt-4">
-              <div className="flex items-center gap-2 text-slate-200">
-                <LineChartIcon size={16} className="text-cyan-300" />
-                <h2 className="text-lg font-semibold text-white">Equity curve</h2>
-              </div>
-              <p className="mt-1 text-sm text-slate-400">Cumulative profit/loss across your trade history.</p>
-              <div className="mt-4">
-                <LineChart values={equityValues} formatValue={(value) => formatCurrency(value, usdToInr)} />
-              </div>
+          {/* Key Metrics Grid */}
+          <section className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+            <MetricTile label="Win Rate" value={formatPercent(stats.winRate)} accent="cyan" icon={<Target size={14} />} />
+            <MetricTile label="Profit Factor" value={profitFactorLabel} accent="blue" icon={<Gauge size={14} />} />
+            <MetricTile label="Win / Loss" value={winLossRatioLabel} accent={analytics.winningCount > analytics.losingCount ? "profit" : "loss"} icon={<Ratio size={14} />} />
+            <MetricTile label="Avg R Multiple" value={averageRLabel} accent="cyan" icon={<Activity size={14} />} />
+            <MetricTile label="Avg Win" value={formatCurrency(stats.averageProfitPerWinningTrade, usdToInr)} accent="profit" icon={<TrendingUp size={14} />} />
+            <MetricTile label="Avg Loss" value={formatCurrency(-stats.averageLossPerLosingTrade, usdToInr)} accent="loss" icon={<TrendingDown size={14} />} />
+            <MetricTile label="Largest Win" value={formatCurrency(metrics.largestWin, usdToInr)} accent="profit" />
+            <MetricTile label="Largest Loss" value={formatCurrency(metrics.largestLoss, usdToInr)} accent="loss" />
+            <MetricTile label="Trades / Day" value={analytics.averageTradesPerActiveDay.toFixed(1)} accent="amber" icon={<CalendarClock size={14} />} />
+          </section>
+
+          {/* Streaks & Activity */}
+          <section className="mt-5 grid grid-cols-3 gap-2.5">
+            <MetricTile label="Win Streak" value={String(stats.currentWinStreak)} accent="amber" icon={<Flame size={14} />} className="text-center" />
+            <MetricTile label="Best Streak" value={String(stats.bestWinStreak)} accent="amber" icon={<Zap size={14} />} className="text-center" />
+            <MetricTile label="Active Days" value={String(analytics.activeDays)} accent="cyan" className="text-center" />
+          </section>
+
+          {/* Period Performance */}
+          <section className="mt-5">
+            <SectionHeader title="Period Performance" accent="emerald" icon={<BarChart3 size={13} />} />
+            <div className="mt-2 grid grid-cols-3 gap-2.5">
+              <MetricTile label="Today" value={formatCurrency(metrics.todayProfit, usdToInr)} accent={metrics.todayProfit >= 0 ? "profit" : "loss"} />
+              <MetricTile label="This Week" value={formatCurrency(metrics.weekProfit, usdToInr)} accent={metrics.weekProfit >= 0 ? "profit" : "loss"} />
+              <MetricTile label="This Month" value={formatCurrency(metrics.monthProfit, usdToInr)} accent={metrics.monthProfit >= 0 ? "profit" : "loss"} />
+            </div>
+          </section>
+
+          {/* Equity Curve */}
+          <section className="mt-5">
+            <SectionHeader title="Equity Curve" accent="cyan" icon={<LineChartIcon size={13} />} />
+            <AppCard className="mt-2">
+              <LineChart values={equityValues} formatValue={(v) => formatCurrency(v, usdToInr)} color="cyan" />
             </AppCard>
+          </section>
 
-            <AppCard accent="default" className="mt-4">
-              <div className="flex items-center gap-2 text-slate-200">
-                <BarChart3 size={16} className="text-cyan-300" />
-                <h2 className="text-lg font-semibold text-white">Profit by month</h2>
-              </div>
-              <p className="mt-1 text-sm text-slate-400">Net profit/loss grouped by calendar month.</p>
-              <div className="mt-4">
-                <BarChart data={monthlyBars} diverging valueFormatter={(value) => formatCurrency(value, usdToInr)} />
-              </div>
+          {/* Profit by Month */}
+          <section className="mt-5">
+            <SectionHeader title="Profit by Month" accent="emerald" icon={<BarChart3 size={13} />} />
+            <AppCard className="mt-2">
+              <BarChart data={monthlyBars} diverging color="emerald" valueFormatter={(v) => formatCurrency(v, usdToInr)} />
             </AppCard>
+          </section>
 
-            <div className="mt-4 grid gap-4 lg:grid-cols-2">
-              <AppCard accent="default">
-                <div className="flex items-center gap-2 text-slate-200">
-                  <Ratio size={16} className="text-cyan-300" />
-                  <h2 className="text-lg font-semibold text-white">Win / Loss ratio</h2>
-                </div>
-                <p className="mt-1 text-sm text-slate-400">Share of winning versus losing trades.</p>
-                <div className="mt-4">
-                  <RatioBar winning={analytics.winningCount} losing={analytics.losingCount} />
-                </div>
-              </AppCard>
-
-              <AppCard accent="default">
-                <div className="flex items-center gap-2 text-slate-200">
-                  <CalendarClock size={16} className="text-cyan-300" />
-                  <h2 className="text-lg font-semibold text-white">Trading frequency</h2>
-                </div>
-                <p className="mt-1 text-sm text-slate-400">Number of trades taken by weekday.</p>
-                <div className="mt-4">
-                  <BarChart data={weekdayBars} valueFormatter={(value) => String(value)} height={140} />
-                </div>
+          {/* Win/Loss & Frequency */}
+          <section className="mt-5 grid gap-4 lg:grid-cols-2">
+            <div>
+              <SectionHeader title="Win / Loss Ratio" accent="emerald" icon={<Ratio size={13} />} />
+              <AppCard className="mt-2">
+                <RatioBar winning={analytics.winningCount} losing={analytics.losingCount} />
               </AppCard>
             </div>
-          </>
-        )}
+            <div>
+              <SectionHeader title="Trading Frequency" accent="amber" icon={<CalendarClock size={13} />} />
+              <AppCard className="mt-2">
+                <BarChart data={weekdayBars} color="amber" valueFormatter={(v) => String(v)} height={140} />
+              </AppCard>
+            </div>
+          </section>
+        </>
+      )}
     </AppShell>
+  );
+}
+
+function Target({ size, className }: { size: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
+    </svg>
   );
 }

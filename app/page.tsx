@@ -2,9 +2,9 @@
 
 export const dynamic = "force-dynamic";
 
-import { Activity, PlusCircle, WalletCards } from "lucide-react";
+import { TrendingUp, TrendingDown, Calendar, Target, Flame, Zap, BarChart3, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { AppCard, AppLinkButton, AppShell, PageHeader, SkeletonCard, StatCard } from "./components/ui-primitives";
+import { AppCard, AppLinkButton, AppShell, HeroMetric, MetricTile, PageHeader, ProgressBar, SectionHeader, SkeletonCard } from "./components/ui-primitives";
 import { formatCurrency, formatPercent } from "./lib/tracker-data";
 import { getDashboardMetrics } from "./lib/tracker-calculations";
 import { useTrackerStore } from "./lib/tracker-store";
@@ -23,7 +23,6 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     const message = window.sessionStorage.getItem(TOAST_KEY);
     if (message) {
       setToast(message);
@@ -36,69 +35,177 @@ export default function Home() {
   const stats = useMemo(() => data.stats, [data.stats]);
   const metrics = useMemo(() => getDashboardMetrics(data.trades), [data.trades]);
 
-  const performanceCards = useMemo(
-    () => [
-      { title: "Today's Profit/Loss", value: formatCurrency(metrics.todayProfit, data.settings.usdToInr), tone: metrics.todayProfit >= 0 ? "text-emerald-300" : "text-rose-300" },
-      { title: "This Week", value: formatCurrency(metrics.weekProfit, data.settings.usdToInr), tone: metrics.weekProfit >= 0 ? "text-emerald-300" : "text-rose-300" },
-      { title: "This Month", value: formatCurrency(metrics.monthProfit, data.settings.usdToInr), tone: metrics.monthProfit >= 0 ? "text-emerald-300" : "text-rose-300" },
-      { title: "Average Daily Profit", value: formatCurrency(metrics.averageDailyProfit, data.settings.usdToInr), tone: metrics.averageDailyProfit >= 0 ? "text-emerald-300" : "text-rose-300" },
-      { title: "Average Winning Trade", value: formatCurrency(stats.averageProfitPerWinningTrade, data.settings.usdToInr), tone: "text-emerald-300" },
-      { title: "Average Losing Trade", value: formatCurrency(-stats.averageLossPerLosingTrade, data.settings.usdToInr), tone: "text-rose-300" },
-      { title: "Largest Win", value: formatCurrency(metrics.largestWin, data.settings.usdToInr), tone: "text-emerald-300" },
-      { title: "Largest Loss", value: formatCurrency(metrics.largestLoss, data.settings.usdToInr), tone: "text-rose-300" },
-      { title: "Current Win Streak", value: String(stats.currentWinStreak), tone: "text-white" },
-      { title: "Best Win Streak", value: String(stats.bestWinStreak), tone: "text-white" },
-    ],
-    [metrics, stats.averageProfitPerWinningTrade, stats.averageLossPerLosingTrade, stats.currentWinStreak, stats.bestWinStreak, data.settings.usdToInr],
-  );
+  const profitProgress = Math.min(100, Math.round((Math.max(0, stats.currentProfit) / data.settings.minimumProfitForPayout) * 100));
+  const daysProgress = Math.min(100, Math.round((stats.tradingDaysCompleted / data.settings.minimumTradingDays) * 100));
+  const consistencyPercent = stats.winRate;
+  const consistencySafe = consistencyPercent <= 20;
 
-  const dashboardCards = useMemo(
-    () => [
-      { title: "Current Balance", value: formatCurrency(stats.currentBalance, 1), subtitle: "Funded account plus current cycle P/L" },
-      { title: "Current Profit", value: formatCurrency(stats.currentProfit, data.settings.usdToInr), subtitle: "Sum of current cycle trade P/L" },
-      { title: "Profit Remaining Until Payout", value: formatCurrency(stats.profitRemainingUntilPayout, data.settings.usdToInr), subtitle: `${data.settings.minimumProfitForPayout} minimum target` },
-      { title: "Trading Days Completed", value: `${stats.tradingDaysCompleted} / ${data.settings.minimumTradingDays}`, subtitle: "Current cycle trading days" },
-      { title: "Next Payout Countdown", value: `${stats.nextPayoutCountdownDays}d`, subtitle: `${data.settings.payoutCycleDays}-day cycle` },
-      { title: "Current Debt", value: formatCurrency(stats.currentDebt, 1), subtitle: "Only reduced after confirmed payments" },
-      { title: "Debt Progress", value: formatPercent(stats.debtProgressPercent), subtitle: "Confirmed reduction from original debt" },
-    ],
-    [data.settings.minimumProfitForPayout, data.settings.minimumTradingDays, data.settings.payoutCycleDays, data.settings.usdToInr, stats],
-  );
+  const profitAccent = stats.currentProfit >= 0 ? "profit" : "loss";
 
   return (
     <AppShell activeTab="dashboard">
-      {toast ? <div className="fixed right-4 top-4 z-50 rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-300 shadow-lg backdrop-blur">{toast}</div> : null}
+      {toast ? (
+        <div className="fixed right-4 top-4 z-50 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-300 shadow-lg backdrop-blur animate-fade-in">{toast}</div>
+      ) : null}
+
       <PageHeader
-        eyebrow="Trade Tracker"
-        title="Private trading dashboard"
-        description="Your current cycle, payout readiness, and debt progress update instantly from saved trades."
-        action={<AppLinkButton href="/add" className="hidden sm:inline-flex"><PlusCircle size={16} />Add Trade</AppLinkButton>}
+        title="Dashboard"
+        subtitle={`Cycle ${data.settings.currentCycleNumber}`}
+        action={<AppLinkButton href="/add" className="hidden sm:inline-flex" variant="primary"><Zap size={14} />Add Trade</AppLinkButton>}
       />
 
-      <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {!isReady ? (
-          Array.from({ length: 6 }).map((_, index) => <SkeletonCard key={index} className="h-28" />)
-        ) : (
-          dashboardCards.map((card, index) => (
-            <div key={card.title} className="animate-[fadeIn_400ms_ease-out]" style={{ animationDelay: `${index * 70}ms` }}>
-              <StatCard label={card.title} value={card.value} subtitle={card.subtitle} icon={card.title === "Current Debt" ? <WalletCards size={16} /> : undefined} />
+      {!isReady ? (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} className="h-28" />)}
+        </div>
+      ) : (
+        <>
+          {/* Current Cycle - Hero Section */}
+          <section className="mt-4">
+            <HeroMetric
+              label="Current Profit"
+              value={formatCurrency(stats.currentProfit, data.settings.usdToInr)}
+              accent={profitAccent}
+              icon={stats.currentProfit >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+              subtitle={`${profitProgress}% of ${formatCurrency(data.settings.minimumProfitForPayout, data.settings.usdToInr)} target`}
+            />
+            <div className="mt-3">
+              <ProgressBar
+                value={profitProgress}
+                barClassName={stats.currentProfit >= 0 ? "from-emerald-500 to-cyan-400" : "from-rose-500 to-rose-400"}
+              />
             </div>
-          ))
-        )}
-      </section>
+          </section>
 
-      <h2 className="mt-6 text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">Performance metrics</h2>
-      <section className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {!isReady ? (
-          Array.from({ length: 6 }).map((_, index) => <SkeletonCard key={index} className="h-24" />)
-        ) : (
-          performanceCards.map((card, index) => (
-            <div key={card.title} className="animate-[fadeIn_400ms_ease-out]" style={{ animationDelay: `${index * 60}ms` }}>
-              <StatCard label={card.title} value={card.value} valueClassName={card.tone} icon={<Activity size={16} />} />
+          {/* Supporting Metrics */}
+          <section className="mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
+            <MetricTile
+              label="Best Day"
+              value={formatCurrency(metrics.largestWin, data.settings.usdToInr)}
+              accent="profit"
+              icon={<TrendingUp size={14} />}
+            />
+            <MetricTile
+              label="Consistency"
+              value={`${consistencyPercent.toFixed(1)}%`}
+              accent={consistencySafe ? "profit" : consistencyPercent <= 30 ? "amber" : "loss"}
+              icon={<Target size={14} />}
+            />
+            <MetricTile
+              label="Trading Days"
+              value={`${stats.tradingDaysCompleted} / ${data.settings.minimumTradingDays}`}
+              accent="cyan"
+              icon={<Calendar size={14} />}
+            />
+            <MetricTile
+              label="Win Streak"
+              value={String(stats.currentWinStreak)}
+              accent={stats.currentWinStreak > 0 ? "amber" : "default"}
+              icon={<Flame size={14} />}
+            />
+          </section>
+
+          {/* Payout Readiness */}
+          <section className="mt-5">
+            <SectionHeader title="Payout Readiness" accent="cyan" icon={<BarChart3 size={13} />} />
+            <AppCard accent={stats.payoutEligible ? "emerald" : "amber"} className="mt-2">
+              {stats.payoutEligible ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+                    <Zap size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-emerald-400">Ready for Payout</p>
+                    <p className="mt-0.5 text-xs text-slate-400">All conditions met</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-emerald-400">{formatCurrency(stats.currentProfit, data.settings.usdToInr)}</p>
+                    <p className="text-xs text-slate-500">Available</p>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
+                      <Target size={18} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-amber-400">Not Ready</p>
+                      <p className="mt-0.5 text-xs text-slate-400">
+                        {stats.profitRemainingUntilPayout > 0 && stats.tradingDaysCompleted < data.settings.minimumTradingDays
+                          ? "2 conditions remaining"
+                          : stats.profitRemainingUntilPayout > 0
+                            ? "1 condition remaining"
+                            : "1 condition remaining"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    {stats.profitRemainingUntilPayout > 0 ? (
+                      <div className="flex items-center justify-between rounded-lg bg-white/[0.03] px-3 py-2">
+                        <span className="text-xs text-slate-400">Profit remaining</span>
+                        <span className="text-xs font-medium text-amber-300">{formatCurrency(stats.profitRemainingUntilPayout, data.settings.usdToInr)}</span>
+                      </div>
+                    ) : null}
+                    {stats.tradingDaysCompleted < data.settings.minimumTradingDays ? (
+                      <div className="flex items-center justify-between rounded-lg bg-white/[0.03] px-3 py-2">
+                        <span className="text-xs text-slate-400">Trading days needed</span>
+                        <span className="text-xs font-medium text-amber-300">{stats.tradingDaysCompleted} / {data.settings.minimumTradingDays}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              )}
+            </AppCard>
+          </section>
+
+          {/* Debt Impact */}
+          <section className="mt-5">
+            <SectionHeader title="Debt Impact" accent="violet" icon={<Wallet size={13} />} />
+            <AppCard accent="violet" className="mt-2">
+              <div className="flex items-baseline justify-between gap-3">
+                <div>
+                  <p className="text-2xl font-bold tracking-tight text-violet-400">{formatCurrency(data.settings.currentDebt, 1)}</p>
+                  <p className="mt-0.5 text-xs text-slate-400">Remaining debt</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-slate-300">{stats.debtProgressPercent}%</p>
+                  <p className="text-xs text-slate-500">cleared</p>
+                </div>
+              </div>
+              <div className="mt-3">
+                <ProgressBar value={stats.debtProgressPercent} barClassName="from-violet-500 to-violet-400" />
+              </div>
+              <div className="mt-3 flex justify-between text-xs text-slate-500">
+                <span>{formatCurrency(data.settings.originalDebt, 1)}</span>
+                <span>₹0</span>
+              </div>
+            </AppCard>
+          </section>
+
+          {/* Performance Overview */}
+          <section className="mt-5">
+            <SectionHeader title="Performance" accent="blue" icon={<BarChart3 size={13} />} />
+            <div className="mt-2 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+              <MetricTile label="Today" value={formatCurrency(metrics.todayProfit, data.settings.usdToInr)} accent={metrics.todayProfit >= 0 ? "profit" : "loss"} />
+              <MetricTile label="This Week" value={formatCurrency(metrics.weekProfit, data.settings.usdToInr)} accent={metrics.weekProfit >= 0 ? "profit" : "loss"} />
+              <MetricTile label="This Month" value={formatCurrency(metrics.monthProfit, data.settings.usdToInr)} accent={metrics.monthProfit >= 0 ? "profit" : "loss"} />
+              <MetricTile label="Avg Daily" value={formatCurrency(metrics.averageDailyProfit, data.settings.usdToInr)} accent="cyan" />
+              <MetricTile label="Largest Win" value={formatCurrency(metrics.largestWin, data.settings.usdToInr)} accent="profit" />
+              <MetricTile label="Largest Loss" value={formatCurrency(metrics.largestLoss, data.settings.usdToInr)} accent="loss" />
             </div>
-          ))
-        )}
-      </section>
+          </section>
+
+          {/* Quick Stats */}
+          <section className="mt-5 mb-4">
+            <div className="grid grid-cols-3 gap-2.5">
+              <MetricTile label="Avg Win" value={formatCurrency(stats.averageProfitPerWinningTrade, data.settings.usdToInr)} accent="profit" className="text-center" />
+              <MetricTile label="Avg Loss" value={formatCurrency(-stats.averageLossPerLosingTrade, data.settings.usdToInr)} accent="loss" className="text-center" />
+              <MetricTile label="Best Streak" value={String(stats.bestWinStreak)} accent="amber" className="text-center" />
+            </div>
+          </section>
+        </>
+      )}
     </AppShell>
   );
 }
